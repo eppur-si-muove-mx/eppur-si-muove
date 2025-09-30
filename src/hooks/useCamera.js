@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCameraSimulator } from './useCameraSimulator'
 
 /**
  * useCamera
@@ -20,6 +21,8 @@ export function useCamera(options = {}) {
     deviceId,
     // Whether to automatically start on mount
     autoStart = false,
+    // development toggle: force simulation mode
+    simulate,
   } = options
 
   const [isLoading, setIsLoading] = useState(false)
@@ -29,6 +32,20 @@ export function useCamera(options = {}) {
 
   const mediaStreamRef = useRef(null)
   const videoRef = useRef(null)
+
+  // Simulation mode detection (env + param, dev-friendly)
+  const envSim =
+    (typeof process !== 'undefined' &&
+      (process.env.NEXT_PUBLIC_USE_MOCK_CAMERA === 'true' || process.env.NEXT_PUBLIC_USE_MOCK_CAMERA === '1')) ||
+    (typeof window !== 'undefined' && (window.__USE_MOCK_CAMERA === true || window.__USE_MOCK_CAMERA === 'true'))
+  const useSim = typeof simulate === 'boolean' ? simulate : envSim
+
+  // If simulate, delegate to simulator hook and show badge
+  if (useSim) {
+    const sim = useCameraSimulator({ width, height, frameRate, autoStart, debug: false })
+    useSimBadge(sim.isActive)
+    return sim
+  }
 
   // Compute constraints only when inputs change
   const constraints = useMemo(() => {
@@ -152,6 +169,7 @@ export function useCamera(options = {}) {
     // controls
     start,
     stop,
+    __simulated: false,
   }
 }
 

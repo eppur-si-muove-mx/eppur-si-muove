@@ -284,6 +284,7 @@ export function useCameraSimulator(options = {}) {
     stream,
     start,
     stop,
+    __simulated: true,
   }
 }
 
