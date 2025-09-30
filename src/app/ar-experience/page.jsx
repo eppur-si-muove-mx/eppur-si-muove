@@ -23,9 +23,9 @@ export default function ARExperiencePage() {
     const onKey = (e) => {
       if (e.code === 'Space') { e.preventDefault(); scan.scanArea() }
     }
-    window.addEventListener('keydown', onKey)
+    window.addEventListener('keydown', onKey, { passive: false })
     return () => window.removeEventListener('keydown', onKey)
-  }, [scan])
+  }, [scan.scanArea])
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', width: '100vw' }}>
