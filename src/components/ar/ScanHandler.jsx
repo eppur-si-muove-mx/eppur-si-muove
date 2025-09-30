@@ -1,16 +1,14 @@
 "use client"
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { useDeviceOrientation } from '@/hooks/useDeviceOrientation'
 import { useMockOrientation } from '@/utils/mockData/sensorSimulator'
 import calculateSearchArea from '@/utils/searchArea'
-import searchCelestialObjects, { type SearchResult } from '@/utils/data/spatialSearch'
+import searchCelestialObjects from '@/utils/data/spatialSearch'
 
-type ScanState = 'idle' | 'scanning' | 'processing' | 'complete'
-
-function humanDirection(alpha: number, beta: number): 'North' | 'East' | 'South' | 'West' | 'Up' {
+function humanDirection(alpha, beta) {
   if (beta > 60) return 'Up'
   const a = ((alpha % 360) + 360) % 360
   if (a >= 315 || a < 45) return 'North'
@@ -25,10 +23,10 @@ export function useScan() {
   const device = useDeviceOrientation({ autoStart: false })
   const mock = useMockOrientation()
 
-  const [state, setState] = useState<ScanState>('idle')
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [progress, setProgress] = useState<number>(0)
-  const [highlight, setHighlight] = useState<boolean>(false)
+  const [state, setState] = useState('idle')
+  const [results, setResults] = useState([])
+  const [progress, setProgress] = useState(0)
+  const [highlight, setHighlight] = useState(false)
 
   const orientation = useMemo(() => {
     // Prefer mock if enabled for deterministic desktop testing
@@ -101,11 +99,11 @@ export function useScan() {
       }
 
       return found
-    } catch (err: any) {
+    } catch (err) {
       console.error('[SCAN] failed', err)
       setState('idle')
       toast.error('Scan failed', { id: 'scan' })
-      return [] as SearchResult[]
+      return []
     }
   }, [getPosition, orientation])
 
@@ -137,7 +135,7 @@ export function useScan() {
 export default useScan
 
 // Visual scanning overlay
-function ScanningOverlay({ visible, direction, progress, highlight }: { visible: boolean; direction: string; progress: number; highlight: boolean }) {
+function ScanningOverlay({ visible, direction, progress, highlight }) {
   if (!visible && !highlight) return null
   return (
     <div className="pointer-events-none fixed inset-0 z-[30] flex items-center justify-center">
