@@ -19,6 +19,7 @@ export default function ARCameraView(props) {
     className,
     style,
     zIndex = -1, // behind content by default
+    onReady,
   } = props || {}
 
   const {
@@ -58,6 +59,13 @@ export default function ARCameraView(props) {
       stop()
     }
   }, [autoStart, start, stop])
+
+  // Expose simple controller to parent when requested
+  useEffect(() => {
+    if (typeof onReady === 'function') {
+      onReady({ start, stop, isActive, isLoading, error })
+    }
+  }, [onReady, start, stop, isActive, isLoading, error])
 
   // Styles for full-viewport background
   const containerStyle = useMemo(() => ({

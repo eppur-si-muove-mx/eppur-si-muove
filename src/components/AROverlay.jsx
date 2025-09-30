@@ -23,16 +23,10 @@ export default function AROverlay({ discoveries = 0, onScan }) {
       role="presentation"
     >
       {/* Top bar */}
-      <header className="absolute left-0 right-0 top-3 flex justify-center">
-        <div className="pointer-events-auto w-full max-w-screen-sm px-3">
-          <Card className="bg-background/80 backdrop-blur-md py-3">
-            <CardContent className="flex items-center justify-between">
-              <div className="text-sm opacity-80">Discoveries</div>
-              <Badge className="bg-cosmic-blue-500/80 text-white border-transparent">{discoveries}</Badge>
-            </CardContent>
-          </Card>
-        </div>
-      </header>
+      <div className="absolute left-3 right-3 top-3 flex justify-center text-md opacity-70 flex gap-2 rounded-md p-2 bg-primary backdrop-blur-md font-semibold text-white"><p>Discoveries:</p>
+        <Badge className="bg-cosmic-blue-500/80 text-white border-transparent">{discoveries}</Badge>
+      </div>
+
 
       {/* Center reticle */}
       <main className="absolute inset-0 flex items-center justify-center">
@@ -40,17 +34,9 @@ export default function AROverlay({ discoveries = 0, onScan }) {
       </main>
 
       {/* Bottom CTA */}
-      <footer className="absolute left-0 right-0 bottom-4 flex justify-center">
-        <div className="pointer-events-auto w-full max-w-screen-sm px-3">
-          <Card className="bg-background/80 backdrop-blur-md">
-            <CardContent className="py-3">
-              <div className="flex justify-center">
-                <Button className="px-10" size="lg" onClick={onScan}>Scan</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </footer>
+      <div className="absolute left-0 right-0 bottom-4 flex justify-center pointer-events-auto w-full max-w-screen-sm px-3!">
+        <Button className="px-8 w-full opacity-70 backdrop-blur-md" size="lg" onClick={onScan}>Scan for Exoplanets</Button>
+      </div>
     </div>
   )
 }
