@@ -4,13 +4,28 @@ import Link from 'next/link'
 import ARCameraView from '@/components/ARCameraView'
 import AROverlay from '@/components/AROverlay'
 import { useDeviceOrientation } from '@/hooks/useDeviceOrientation'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
+import { useScan } from '@/components/ar/ScanHandler'
+import { useDiscovery } from '@/contexts/DiscoveryContext'
+import { useMockOrientation } from '@/utils/mockData/sensorSimulator'
 
 export default function ARExperiencePage() {
   const isIOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent)
   const cameraCtl = useRef({ start: () => {}, stop: () => {} })
   const motion = useDeviceOrientation({ autoStart: false })
+  const scan = useScan()
+  const discovery = useDiscovery()
+  const mock = useMockOrientation()
+
+  // Space to trigger scan
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.code === 'Space') { e.preventDefault(); scan.scanArea() }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [scan])
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', width: '100vw' }}>
@@ -20,7 +35,18 @@ export default function ARExperiencePage() {
         zIndex={-1}
         onReady={(ctl) => { cameraCtl.current = ctl }}
       />
-      <AROverlay discoveries={0} onScan={() => {}} />
+      {scan.ui.Overlay}
+      <AROverlay
+        discoveries={discovery.discoveryCount}
+        onScan={async () => {
+          const res = await scan.scanArea()
+          if (res.length) console.log('[AR] found objects', res)
+          discovery.setScanResults(res)
+          discovery.updateScanState('complete')
+        }}
+        scanning={scan.state === 'scanning' || scan.state === 'processing'}
+        progress={scan.ui.progress}
+      />
 
 
       {/* iOS enable buttons - visible when camera not active */}
@@ -42,6 +68,8 @@ export default function ARExperiencePage() {
           </Button>
         </div>
       </div>
+
+      {mock.enabled && mock.DebugPanel}
     </div>
   )
 }

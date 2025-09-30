@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
  * - Center: targeting reticle
  * - Bottom: scan button inside a glass card
  */
-export default function AROverlay({ discoveries = 0, onScan }) {
+export default function AROverlay({ discoveries = 0, onScan, scanning = false, progress = 0 }) {
   return (
     <div
       className="pointer-events-none fixed inset-0 z-[2]"
@@ -35,7 +35,9 @@ export default function AROverlay({ discoveries = 0, onScan }) {
 
       {/* Bottom CTA */}
       <div className="absolute left-0 right-0 bottom-4 flex justify-center pointer-events-auto w-full max-w-screen-sm px-3!">
-        <Button className="px-8 w-full opacity-70 backdrop-blur-md" size="lg" onClick={onScan}>Scan for Exoplanets</Button>
+        <Button className="px-8 w-full opacity-70 backdrop-blur-md" size="lg" onClick={onScan} disabled={scanning}>
+          {scanning ? `Scanning… ${progress}%` : 'Scan for Exoplanets'}
+        </Button>
       </div>
     </div>
   )
