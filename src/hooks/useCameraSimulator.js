@@ -181,6 +181,19 @@ export function useCameraSimulator(options = {}) {
     ctx.restore()
   }, [alpha, beta, gamma, debug, orientation])
 
+  const stop = useCallback(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    rafRef.current = 0
+    const s = streamRef.current
+    if (s) {
+      s.getTracks().forEach((t) => {
+        try { t.stop() } catch (_) {}
+      })
+      streamRef.current = null
+    }
+    setIsActive(false)
+  }, [])
+
   const start = useCallback(async () => {
     if (isActive || isLoading) return
     setIsLoading(true)
@@ -234,19 +247,6 @@ export function useCameraSimulator(options = {}) {
       setIsLoading(false)
     }
   }, [drawClouds, drawDebugOverlay, drawSkyGradient, drawStars, frameRate, initScene, internalSize.h, internalSize.w, isActive, isLoading, stop])
-
-  const stop = useCallback(() => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    rafRef.current = 0
-    const s = streamRef.current
-    if (s) {
-      s.getTracks().forEach((t) => {
-        try { t.stop() } catch (_) {}
-      })
-      streamRef.current = null
-    }
-    setIsActive(false)
-  }, [])
 
   // Orientation changes for orientation state
   useEffect(() => {
