@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import ARCameraView from '@/components/ARCameraView'
 import AROverlay from '@/components/AROverlay'
-import { useEffect, useRef } from 'react'
+import ARStarRenderer from '@/components/ar/ARStarRenderer'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useScan } from '@/components/ar/ScanHandler'
 import { useDiscovery } from '@/contexts/DiscoveryContext'
@@ -15,6 +16,9 @@ export default function ARExperiencePage() {
   const scan = useScan()
   const discovery = useDiscovery()
   const mock = useMockOrientation()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   // Space to trigger scan
   useEffect(() => {
@@ -33,6 +37,7 @@ export default function ARExperiencePage() {
         zIndex={-1}
         onReady={(ctl) => { cameraCtl.current = ctl }}
       />
+      <ARStarRenderer />
       {scan.ui.Overlay}
       <AROverlay
         discoveries={discovery.discoveryCount}
@@ -67,12 +72,14 @@ export default function ARExperiencePage() {
         </div>
       </div>
 
-      {/* Motion status chip */}
-      <div className="fixed top-3 right-3 z-[3] pointer-events-none">
-        <span className={`pointer-events-auto rounded-md border px-2 py-1 text-xs backdrop-blur-md ${scan.sensors.motionStatus === 'active' ? 'bg-green-500/70 text-white' : scan.sensors.motionStatus === 'denied' ? 'bg-red-500/70 text-white' : 'bg-white/60'}`}>
-          Motion: {scan.sensors.motionStatus}
-        </span>
-      </div>
+      {/* Motion status chip (render after mount to avoid hydration mismatch) */}
+      {mounted && (
+        <div className="fixed top-3 right-3 z-[3] pointer-events-none">
+          <span className={`pointer-events-auto rounded-md border px-2 py-1 text-xs backdrop-blur-md ${scan.sensors.motionStatus === 'active' ? 'bg-green-500/70 text-white' : scan.sensors.motionStatus === 'denied' ? 'bg-red-500/70 text-white' : 'bg-white/60'}`}>
+            Motion: {scan.sensors.motionStatus}
+          </span>
+        </div>
+      )}
 
       {mock.enabled && mock.DebugPanel}
     </div>

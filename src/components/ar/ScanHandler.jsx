@@ -73,6 +73,11 @@ export function useScan() {
       })
       let { alpha, beta, gamma } = readOrientation()
       let { latitude, longitude } = getPosition()
+      if (!isFinite(latitude) || !isFinite(longitude)) {
+        // Use fallback for testing
+        latitude = 20.67053404521385
+        longitude = -103.37833696752742
+      }
       console.log('[SCAN] orientation', { alpha, beta, gamma, mock: orientation.mock })
       console.log('[SCAN] position', { latitude, longitude })
 
