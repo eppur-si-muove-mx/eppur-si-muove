@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import ARCameraView from '@/components/ARCameraView'
 import AROverlay from '@/components/AROverlay'
-import { useDeviceOrientation } from '@/hooks/useDeviceOrientation'
 import { useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useScan } from '@/components/ar/ScanHandler'
@@ -13,7 +12,6 @@ import { useMockOrientation } from '@/utils/mockData/sensorSimulator'
 export default function ARExperiencePage() {
   const isIOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent)
   const cameraCtl = useRef({ start: () => {}, stop: () => {} })
-  const motion = useDeviceOrientation({ autoStart: false })
   const scan = useScan()
   const discovery = useDiscovery()
   const mock = useMockOrientation()
@@ -60,13 +58,20 @@ export default function ARExperiencePage() {
             Enable Camera
           </Button>
           <Button
-            onClick={() => motion.start()}
+            onClick={() => scan.sensors.startMotion?.()}
             size="sm"
             className="opacity-60 backdrop-blur-md"
           >
-            Enable Motion
+            {scan.sensors.motionStatus === 'active' ? 'Motion Enabled' : 'Enable Motion'}
           </Button>
         </div>
+      </div>
+
+      {/* Motion status chip */}
+      <div className="fixed top-3 right-3 z-[3] pointer-events-none">
+        <span className={`pointer-events-auto rounded-md border px-2 py-1 text-xs backdrop-blur-md ${scan.sensors.motionStatus === 'active' ? 'bg-green-500/70 text-white' : scan.sensors.motionStatus === 'denied' ? 'bg-red-500/70 text-white' : 'bg-white/60'}`}>
+          Motion: {scan.sensors.motionStatus}
+        </span>
       </div>
 
       {mock.enabled && mock.DebugPanel}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { useDeviceOrientation } from '@/hooks/useDeviceOrientation'
@@ -43,6 +43,21 @@ export function useScan() {
     }
   }, [geo.latitude, geo.longitude])
 
+  // Motion status feedback
+  const motionStatus = device.status
+  const enableMotion = useCallback(async () => {
+    try {
+      await device.start()
+    } catch (_) {}
+  }, [device])
+
+  // Visual feedback when motion permission changes
+  useEffect(() => {
+    if (motionStatus === 'active') toast.success('Motion enabled', { id: 'motion' })
+    else if (motionStatus === 'denied') toast.error('Motion access denied', { id: 'motion' })
+    else if (motionStatus === 'unsupported') toast.error('Motion not supported', { id: 'motion' })
+  }, [motionStatus])
+
   const scanArea = useCallback(async () => {
     try {
       setState('scanning')
@@ -50,16 +65,48 @@ export function useScan() {
       toast.loading('Scanning...', { id: 'scan' })
       console.log('[SCAN] starting')
 
-      const { alpha, beta, gamma } = orientation
-      const { latitude, longitude } = getPosition()
+      // Read latest orientation directly to avoid stale memo just after granting permission
+      const readOrientation = () => ({
+        alpha: mock.enabled ? mock.alpha : (device.alpha ?? NaN),
+        beta: mock.enabled ? mock.beta : (device.beta ?? NaN),
+        gamma: mock.enabled ? mock.gamma : (device.gamma ?? NaN),
+      })
+      let { alpha, beta, gamma } = readOrientation()
+      let { latitude, longitude } = getPosition()
       console.log('[SCAN] orientation', { alpha, beta, gamma, mock: orientation.mock })
       console.log('[SCAN] position', { latitude, longitude })
 
+      // If motion is not yet active, request it and wait briefly for first sample (iOS quirk)
+      if (!isFinite(alpha) || !isFinite(beta) || !isFinite(gamma)) {
+        try { await device.start() } catch (_) {}
+        const start = Date.now()
+        while (Date.now() - start < 1500) {
+          await new Promise(r => setTimeout(r, 100))
+          const o = readOrientation()
+          if (isFinite(o.alpha) && isFinite(o.beta) && isFinite(o.gamma)) {
+            alpha = o.alpha; beta = o.beta; gamma = o.gamma; break
+          }
+        }
+      }
       if (!isFinite(alpha) || !isFinite(beta) || !isFinite(gamma)) {
         throw new Error('Orientation not available. Enable Motion access.')
       }
       if (!isFinite(latitude) || !isFinite(longitude)) {
-        throw new Error('Location not available. Allow location access.')
+        // Request and wait briefly for a GPS fix (iOS may take a moment)
+        try { await geo.requestPermission?.() } catch (_) {}
+        try { await geo.refresh?.() } catch (_) {}
+        const start = Date.now()
+        while (Date.now() - start < 3000) {
+          await new Promise(r => setTimeout(r, 150))
+          if (isFinite(geo.latitude) && isFinite(geo.longitude)) {
+            latitude = geo.latitude
+            longitude = geo.longitude
+            break
+          }
+        }
+        if (!isFinite(latitude) || !isFinite(longitude)) {
+          throw new Error('Location not available. Allow location access.')
+        }
       }
 
       // Haptics where supported
@@ -127,7 +174,8 @@ export function useScan() {
     sensors: {
       orientation,
       geolocation: { status: geo.status, latitude: geo.latitude, longitude: geo.longitude },
-      startMotion: device.start,
+      startMotion: enableMotion,
+      motionStatus,
     },
   }
 }
