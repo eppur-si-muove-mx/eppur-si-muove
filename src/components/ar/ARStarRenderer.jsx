@@ -1,158 +1,290 @@
 "use client"
 
-import { useEffect, useMemo, useRef } from 'react'
-import { CelestialDataManager } from '@/utils/data/celestialDataManager'
-import { raDecToAltAz, enuVectorFromAltAz, projectToScreen } from '@/lib/astro/projection'
-import { useDeviceOrientation } from '@/hooks/useDeviceOrientation'
+import { useEffect, useRef, useState } from 'react'
+import * as THREE from 'three'
+import { raDecToAltAz } from '@/lib/astro/projection'
 import { useGeolocation } from '@/hooks/useGeolocation'
+import { useDeviceOrientation } from '@/hooks/useDeviceOrientation'
+import { CelestialDataManager } from '@/utils/data/celestialDataManager'
 
-// Quaternion helpers
-function qAxisAngle(x, y, z, angle) {
-  const half = angle * 0.5
-  const s = Math.sin(half)
-  return { x: x * s, y: y * s, z: z * s, w: Math.cos(half) }
-}
-function qMul(a, b) {
-  return {
-    w: a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
-    x: a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
-    y: a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
-    z: a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,
-  }
-}
-function qConj(q) { return { x: -q.x, y: -q.y, z: -q.z, w: q.w } }
-function qRotateVec(q, v) {
-  const vx = { x: v.x, y: v.y, z: v.z, w: 0 }
-  const qi = qConj(q)
-  const t = qMul(q, vx)
-  const r = qMul(t, qi)
-  return { x: r.x, y: r.y, z: r.z }
-}
-
-// Phase 1: simple Canvas overlay rendering bright dots for nearby stars.
-export default function ARStarRenderer({ fovDeg = 65, maxStars = 500, orientation: extOrientation }) {
-  const canvasRef = useRef(null)
-  const internalOri = useDeviceOrientation({ autoStart: true })
-  const orientation = extOrientation && (Number.isFinite(extOrientation.alpha) || Number.isFinite(extOrientation.beta))
-    ? extOrientation
-    : internalOri
-  const oriRef = useRef({ alpha: 0, beta: 0 })
-  useEffect(() => {
-    const a = Number.isFinite(orientation.alpha) ? orientation.alpha : 0
-    const b = Number.isFinite(orientation.beta) ? orientation.beta : 0
-    oriRef.current = { alpha: a, beta: b }
-  }, [orientation.alpha, orientation.beta])
-  const geo = useGeolocation({ autoRequest: true, autoWatch: true, enableHighAccuracy: true })
+export default function ARStarRendererThree({ fovDeg = 65, maxStars = 500 }) {
+  const mountRef = useRef(null)
+  const geo = useGeolocation({ autoRequest: true, autoWatch: true })
+  const orientation = useDeviceOrientation({ autoStart: true })
   const FALLBACK = { lat: 20.67053404521385, lon: -103.37833696752742 }
 
-  const stars = useMemo(() => {
-    // Limit to maxStars nearest to some heuristic (e.g., larger radius/temp)
-    const all = CelestialDataManager.getAllObjects()
-    // Simple weight: hotter + larger first
-    return all
+  const [debugInfo, setDebugInfo] = useState({
+    alpha: 0,
+    beta: 0,
+    gamma: 0,
+    screenAngle: 0,
+    isIOS: false,
+    starCount: 0,
+    lookingAt: { altitude: 0, azimuth: 0 }
+  })
+
+  // put these helpers outside the effect so they're not recreated each frame
+  const zee = new THREE.Vector3(0, 0, 1)
+  const euler = new THREE.Euler()
+  const q0 = new THREE.Quaternion()
+  const q1 = new THREE.Quaternion() // -PI/2 around X, needed because camera looks out the back of the device
+  q1.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)
+
+  function setObjectQuaternion(q, alpha, beta, gamma, screenOrient) {
+    // Device gives intrinsic ZXY; we convert to YXZ for Three
+    // NOTE: gamma must be NEGATED; screen orientation must be NEGATED.
+    euler.set(beta, alpha, -gamma, 'YXZ')
+    q.setFromEuler(euler)
+    q.multiply(q1) // fix for device camera axis
+    q.multiply(q0.setFromAxisAngle(zee, -screenOrient)) // account for screen rotation
+  }
+
+
+  useEffect(() => {
+    if (!mountRef.current) return
+
+    const width = window.innerWidth
+    const height = window.innerHeight
+
+    const scene = new THREE.Scene()
+    const camera = new THREE.PerspectiveCamera(fovDeg, width / height, 0.1, 1000)
+
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      powerPreference: "high-performance"
+    })
+    renderer.setSize(width, height)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    mountRef.current.appendChild(renderer.domElement)
+
+    // Add horizon ring for reference
+    const horizonGeometry = new THREE.RingGeometry(99, 101, 64)
+    const horizonMaterial = new THREE.MeshBasicMaterial({
+      color: 0x004400,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.3
+    })
+    const horizonRing = new THREE.Mesh(horizonGeometry, horizonMaterial)
+    horizonRing.rotation.x = Math.PI / 2
+    scene.add(horizonRing)
+
+    // Add cardinal markers
+    const directions = [
+      { label: 'N', angle: 0, color: 0xff0000 },
+      { label: 'E', angle: 90, color: 0x00ff00 },
+      { label: 'S', angle: 180, color: 0x0000ff },
+      { label: 'W', angle: 270, color: 0xffff00 }
+    ]
+
+    directions.forEach(dir => {
+      const angle = dir.angle * Math.PI / 180
+      const radius = 95
+      const markerGeometry = new THREE.BoxGeometry(2, 10, 2)
+      const markerMaterial = new THREE.MeshBasicMaterial({ color: dir.color })
+      const marker = new THREE.Mesh(markerGeometry, markerMaterial)
+      marker.position.set(
+        radius * Math.sin(angle),
+        0,
+        -radius * Math.cos(angle)
+      )
+      scene.add(marker)
+    })
+
+    const starGeometry = new THREE.BufferGeometry()
+    const positions = []
+    const colors = []
+    const sizes = []
+
+    const starData = CelestialDataManager.getAllObjects()
       .slice()
       .sort((a, b) => (b.temp_estrella * b.radio_estrella) - (a.temp_estrella * a.radio_estrella))
       .slice(0, maxStars)
-  }, [maxStars])
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    let raf = 0
-    let lastLSTRecalc = 0
-    let cachedAltAz = []
+    function updateStarPositions() {
+      const lat = geo.latitude || FALLBACK.lat
+      const lon = geo.longitude || FALLBACK.lon
+      const now = new Date()
 
-    function resize() {
-      const dpr = Math.min(2, window.devicePixelRatio || 1)
-      canvas.width = Math.round(canvas.clientWidth * dpr)
-      canvas.height = Math.round(canvas.clientHeight * dpr)
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      positions.length = 0
+      colors.length = 0
+      sizes.length = 0
+      let visibleStars = 0
+
+      starData.forEach(star => {
+        const { altitude, azimuth } = raDecToAltAz(
+          star.Loc1_RA / 15,
+          star.Loc2_DEC,
+          lat,
+          lon,
+          now
+        )
+
+        if (altitude < -5) return
+        visibleStars++
+
+        const altRad = altitude * Math.PI / 180
+        const azRad = azimuth * Math.PI / 180
+
+        const distance = 100
+        const x = distance * Math.cos(altRad) * Math.sin(azRad)
+        const y = distance * Math.sin(altRad)
+        const z = -distance * Math.cos(altRad) * Math.cos(azRad)
+
+        positions.push(x, y, z)
+
+        const temp = star.temp_estrella
+        const r = temp > 5000 ? 1 : temp / 5000
+        const g = temp > 4000 ? 0.9 : temp / 4000 * 0.9
+        const b = temp < 7000 ? 1 : 7000 / temp
+        colors.push(r, g, b)
+
+        const bright = Math.min(1, (temp - 3000) / 7000 * 0.8 + (star.radio_estrella / 10) * 0.2)
+        sizes.push(1 + bright * 3)
+      })
+
+      starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+      starGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3))
+      starGeometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1))
+
+      setDebugInfo(prev => ({ ...prev, starCount: visibleStars }))
     }
-    resize()
-    window.addEventListener('resize', resize)
 
-    function draw(ts) {
-      const w = canvas.clientWidth
-      const h = canvas.clientHeight
-      ctx.clearRect(0, 0, w, h)
+    updateStarPositions()
 
-      const lat = Number.isFinite(geo.latitude) ? geo.latitude : FALLBACK.lat
-      const lon = Number.isFinite(geo.longitude) ? geo.longitude : FALLBACK.lon
+    const starMaterial = new THREE.PointsMaterial({
+      vertexColors: true,
+      size: 2,
+      sizeAttenuation: false,
+      transparent: true,
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending
+    })
 
-      // Recompute Alt/Az ~1/sec (time/LST changes) to reduce CPU
-      if (ts - lastLSTRecalc > 1000 || cachedAltAz.length !== stars.length) {
-        cachedAltAz = stars.map((s) => {
-          const { altitude, azimuth } = raDecToAltAz((s.Loc1_RA / 15), s.Loc2_DEC, lat, lon, new Date())
-          return { altitude, azimuth }
-        })
-        lastLSTRecalc = ts
+    const starPoints = new THREE.Points(starGeometry, starMaterial)
+    scene.add(starPoints)
+
+    const updateInterval = setInterval(updateStarPositions, 1000)
+
+    function calculateLookDirection() {
+      const forward = new THREE.Vector3(0, 0, -1)
+      forward.applyQuaternion(camera.quaternion)
+
+      const x = forward.x
+      const y = forward.y
+      const z = -forward.z
+
+      const altitude = Math.atan2(y, Math.sqrt(x * x + z * z)) * 180 / Math.PI
+      const azimuth = Math.atan2(x, z) * 180 / Math.PI
+
+      return {
+        altitude: altitude.toFixed(1),
+        azimuth: ((azimuth + 360) % 360).toFixed(1)
       }
-
-      // Screen orientation (portrait/landscape) compensation
-      const angle = (window.screen?.orientation?.angle ?? window.orientation ?? 0)
-      const orientRad = Math.round(angle / 90) * 90 * Math.PI / 180
-
-      // Map ENU to camera frame using quaternion to avoid gimbal lock.
-      const rawA = oriRef.current.alpha || 0
-      const rawB = oriRef.current.beta  || 0
-      const rawG = Number.isFinite(orientation.gamma) ? orientation.gamma : 0
-      const a = rawA * Math.PI / 180
-      const b = rawB * Math.PI / 180
-      const g = rawG * Math.PI / 180
-
-      // DeviceOrientation (Z-X'-Y'') and screen orientation
-      const qz = qAxisAngle(0,0,1, -a)  // -alpha
-      const qx = qAxisAngle(1,0,0, -b)  // -beta
-      const qy = qAxisAngle(0,1,0, -g)  // -gamma
-      const qOrient = qAxisAngle(0,0,1, -orientRad) // screen rotation
-      const qCam = qMul(qOrient, qMul(qy, qMul(qx, qz)))
-
-      for (let i = 0; i < stars.length; i += 1) {
-        const { altitude, azimuth } = cachedAltAz[i]
-        if (altitude < -5) continue // skip far below horizon
-        const v = enuVectorFromAltAz(altitude, azimuth)
-        const vCam = qRotateVec(qCam, v)
-        const p = projectToScreen(vCam, fovDeg, w, h)
-        if (!p) continue
-        // brightness heuristic
-        const star = stars[i]
-        const bright = Math.min(1, (star.temp_estrella - 3000) / 7000 * 0.8 + (star.radio_estrella / 10) * 0.2)
-        const r = 1 + 2 * bright
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(255,255,255,${0.5 + 0.5 * bright})`
-        ctx.fill()
-      }
-
-      // Debug crosshair
-      ctx.strokeStyle = 'rgba(0,255,153,0.4)'
-      ctx.beginPath(); ctx.moveTo(w/2-10,h/2); ctx.lineTo(w/2+10,h/2); ctx.stroke()
-      ctx.beginPath(); ctx.moveTo(w/2,h/2-10); ctx.lineTo(w/2,h/2+10); ctx.stroke()
-
-      // Debug text
-      ctx.fillStyle = 'rgba(0,255,153,0.7)'
-      ctx.font = '12px monospace'
-      const dbgA = oriRef.current.alpha
-      const dbgB = oriRef.current.beta
-      ctx.fillText(`alpha=${dbgA.toFixed(1)} beta=${dbgB.toFixed(1)} orient=${Math.round(orientRad*180/Math.PI)}`, 8, 16)
-
-      raf = requestAnimationFrame(draw)
     }
-    raf = requestAnimationFrame(draw)
+
+    // Completely new approach for iOS orientation
+    // keep a ref for smoothing to reduce jitter
+    const targetQ = new THREE.Quaternion()
+    const smoothedQ = new THREE.Quaternion()
+    const SMOOTHING = 0.25 // 0 = instant, 1 = frozen; tweak as you like
+
+    function updateCameraOrientation() {
+      const alphaDeg = orientation.alpha ?? 0
+      const betaDeg = orientation.beta ?? 0
+      const gammaDeg = orientation.gamma ?? 0
+      const screenAngleDeg =
+        (window.screen?.orientation?.angle ?? (window).orientation ?? 0)
+
+      // if we have no data, bail early
+      if (alphaDeg === 0 && betaDeg === 0 && gammaDeg === 0) return
+
+      // Convert to radians
+      const a = THREE.MathUtils.degToRad(alphaDeg)
+      const b = THREE.MathUtils.degToRad(betaDeg)
+      const g = THREE.MathUtils.degToRad(gammaDeg)
+      const s = THREE.MathUtils.degToRad(screenAngleDeg)
+
+      setObjectQuaternion(targetQ, a, b, g, s)
+
+      // Smooth to reduce erratic motion
+      THREE.Quaternion.slerp(camera.quaternion, targetQ, smoothedQ, 1 - Math.pow(1 - SMOOTHING, 60 / 60))
+      camera.quaternion.copy(smoothedQ)
+    }
+
+
+    let animationId
+    function animate() {
+      animationId = requestAnimationFrame(animate)
+      updateCameraOrientation()
+      renderer.render(scene, camera)
+    }
+    animate()
+
+    function handleResize() {
+      camera.aspect = window.innerWidth / window.innerHeight
+      camera.updateProjectionMatrix()
+      renderer.setSize(window.innerWidth, window.innerHeight)
+    }
+    window.addEventListener('resize', handleResize)
 
     return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener('resize', resize)
+      clearInterval(updateInterval)
+      cancelAnimationFrame(animationId)
+      window.removeEventListener('resize', handleResize)
+      if (mountRef.current && renderer.domElement) {
+        mountRef.current.removeChild(renderer.domElement)
+      }
+      renderer.dispose()
+      starGeometry.dispose()
+      starMaterial.dispose()
     }
-  }, [fovDeg, geo.latitude, geo.longitude, stars])
+  }, [fovDeg, geo.latitude, geo.longitude, orientation.alpha, orientation.beta, orientation.gamma])
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1 }}
-    />
+    <>
+      <div ref={mountRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1 }} />
+
+      {/* Crosshair */}
+      <div style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 5,
+        pointerEvents: 'none'
+      }}>
+        <svg width="40" height="40">
+          <line x1="0" y1="20" x2="40" y2="20" stroke="#00ff99" strokeWidth="2" opacity="0.7" />
+          <line x1="20" y1="0" x2="20" y2="40" stroke="#00ff99" strokeWidth="2" opacity="0.7" />
+          <circle cx="20" cy="20" r="15" stroke="#00ff99" strokeWidth="1" fill="none" opacity="0.5" />
+        </svg>
+      </div>
+
+      {/* Debug overlay */}
+      <div style={{
+        position: 'absolute',
+        top: 10,
+        left: 10,
+        zIndex: 10,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        color: '#00ff99',
+        padding: '10px',
+        fontFamily: 'monospace',
+        fontSize: '11px',
+        borderRadius: '4px',
+        pointerEvents: 'none'
+      }}>
+        <div style={{ color: '#ff9900', fontWeight: 'bold', marginBottom: '5px' }}>
+          Looking at: Alt {debugInfo.lookingAt.altitude}° Az {debugInfo.lookingAt.azimuth}°
+        </div>
+        <div>Alpha: {debugInfo.alpha}° (compass)</div>
+        <div>Beta: {debugInfo.beta}° (tilt)</div>
+        <div>Gamma: {debugInfo.gamma}° (roll)</div>
+        <div>Platform: {debugInfo.isIOS ? 'iOS' : 'Android/Other'}</div>
+        <div>Stars visible: {debugInfo.starCount}</div>
+      </div>
+    </>
   )
 }
-
-

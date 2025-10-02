@@ -4,6 +4,7 @@ import Link from 'next/link'
 import ARCameraView from '@/components/ARCameraView'
 import AROverlay from '@/components/AROverlay'
 import ARStarRenderer from '@/components/ar/ARStarRenderer'
+import ARCompassTest from '@/components/ar/ARCompassTest'
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useScan } from '@/components/ar/ScanHandler'
@@ -37,7 +38,7 @@ export default function ARExperiencePage() {
         zIndex={-1}
         onReady={(ctl) => { cameraCtl.current = ctl }}
       />
-      <ARStarRenderer orientation={scan.sensors.orientation} />
+      <ARCompassTest orientation={scan.sensors.orientation} />
       {scan.ui.Overlay}
       <AROverlay
         discoveries={discovery.discoveryCount}
