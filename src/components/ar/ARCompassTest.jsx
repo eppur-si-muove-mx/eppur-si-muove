@@ -15,7 +15,7 @@ function addHorizonBezel(scene, camera, {
     labelEvery = 30,
     colorRing = 0x88aacc,
     colorTick = 0xb4dcff,
-    colorCardinal = "#ff6b6b",
+    colorCardinal = "rgba(200,230,255,0.95)",
     colorLabel = "rgba(200,230,255,0.95)",
 } = {}) {
     const group = new THREE.Group();
@@ -44,9 +44,9 @@ function addHorizonBezel(scene, camera, {
     }
 
     // usage inside addHorizonBezel(...)
-    const outlineRingTop = makeOutlineRing(radius, 256, 0x88aacc, 0.9, 4);
+    const outlineRingTop = makeOutlineRing(radius, 256, 0x88aacc, 0.9, 3);
     group.add(outlineRingTop);
-    const outlineRingBottom = makeOutlineRing(radius, 256, 0x88aacc, 0.9, -4);
+    const outlineRingBottom = makeOutlineRing(radius, 256, 0x88aacc, 0.9, -3.5);
     group.add(outlineRingBottom);
 
     // --- Tick marks ---
@@ -57,47 +57,47 @@ function addHorizonBezel(scene, camera, {
     const placeOutside = true; // put ticks just outside the ring
 
     // Tick style:
-    const shortHeight = 10;     // vertical height in world units
-    const longHeight = 14;
-    const tickThickness = 0.2;   // thin on X/Z
-    const alignMode = "center"; // "base" or "center"
+    // const shortHeight = 10;     // vertical height in world units
+    // const longHeight = 0;
+    // const tickThickness = 0.2;   // thin on X/Z
+    // const alignMode = "center"; // "base" or "center"
 
-    const tickMat = new THREE.MeshBasicMaterial({
-        color: colorTick,
-        transparent: true,
-        opacity: 0.85
-    });
+    // const tickMat = new THREE.MeshBasicMaterial({
+    //     color: colorTick,
+    //     transparent: true,
+    //     opacity: 0.85
+    // });
 
-    for (let az = 0; az < 360; az += tickEvery) {
-        const isLong = (az % longEvery) === 0;
-        const height = isLong ? longHeight : shortHeight;
-        const theta = THREE.MathUtils.degToRad(az);
+    // for (let az = 0; az < 360; az += tickEvery) {
+    //     const isLong = (az % longEvery) === 0;
+    //     const height = isLong ? longHeight : shortHeight;
+    //     const theta = THREE.MathUtils.degToRad(az);
 
-        // RADIAL PLACEMENT — match your ring’s radius
-        // If your ring is a band: inner = radius - bandWidth/2, outer = radius + bandWidth/2
-        // Tick radius just outside (or inside) that band:
-        const rTick = placeOutside
-            ? radius + bandWidth / 2 + gap
-            : radius - bandWidth / 2 - gap;
+    //     // RADIAL PLACEMENT — match your ring’s radius
+    //     // If your ring is a band: inner = radius - bandWidth/2, outer = radius + bandWidth/2
+    //     // Tick radius just outside (or inside) that band:
+    //     const rTick = placeOutside
+    //         ? radius + bandWidth / 2 + gap
+    //         : radius - bandWidth / 2 - gap;
 
-        const x = rTick * Math.sin(theta);
-        const z = -rTick * Math.cos(theta);
+    //     const x = rTick * Math.sin(theta);
+    //     const z = -rTick * Math.cos(theta);
 
-        // GEOMETRY — vertical post (tall in Y, thin in X/Z)
-        const tick = new THREE.Mesh(
-            new THREE.BoxGeometry(tickThickness, height, tickThickness),
-            tickMat
-        );
+    //     // GEOMETRY — vertical post (tall in Y, thin in X/Z)
+    //     const tick = new THREE.Mesh(
+    //         new THREE.BoxGeometry(tickThickness, height, tickThickness),
+    //         tickMat
+    //     );
 
-        // Y PLACEMENT
-        // "base": base sits on horizon plane -> center is at yOffset + height/2
-        // "center": center aligns with horizon plane -> center is at yOffset
-        const yCenter = (alignMode === "base") ? (yOffset + height / 2) : yOffset;
+    //     // Y PLACEMENT
+    //     // "base": base sits on horizon plane -> center is at yOffset + height/2
+    //     // "center": center aligns with horizon plane -> center is at yOffset
+    //     const yCenter = (alignMode === "base") ? (yOffset + height / 2) : yOffset;
 
-        tick.position.set(x, yCenter, z);
-        // No rotation needed for vertical posts
-        group.add(tick);
-    }
+    //     tick.position.set(x, yCenter, z);
+    //     // No rotation needed for vertical posts
+    //     group.add(tick);
+    // }
 
 
     // --- Label helpers (sprites render crisp and face camera automatically) ---
@@ -225,8 +225,6 @@ export default function ARStarAR({
         const height = window.innerHeight;
 
         const scene = new THREE.Scene();
-        // keep opaque while debugging; set to null later if you want transparency
-        scene.background = null;
 
         const camera = new THREE.PerspectiveCamera(fovDeg, width / height, 0.01, 5000);
 
@@ -238,7 +236,7 @@ export default function ARStarAR({
         });
         renderer.setSize(width, height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setClearColor(0x000814, 0);
+        renderer.setClearColor(new THREE.Color(0x000814), 0.75);
         mountRef.current.appendChild(renderer.domElement);
 
         Object.assign(renderer.domElement.style, {
@@ -488,15 +486,6 @@ export default function ARStarAR({
                 }}
             />
 
-            {/* Crosshair */}
-            <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 5, pointerEvents: "none" }}>
-                <svg width="40" height="40">
-                    <line x1="0" y1="20" x2="40" y2="20" stroke="#00ff99" strokeWidth="2" opacity="0.7" />
-                    <line x1="20" y1="0" x2="20" y2="40" stroke="#00ff99" strokeWidth="2" opacity="0.7" />
-                    <circle cx="20" cy="20" r="15" stroke="#00ff99" strokeWidth="1" fill="none" opacity="0.5" />
-                </svg>
-            </div>
-
             {/* Motion permission — keep your fixed positioning tweak */}
             {!motionReady && (
                 <button
@@ -519,11 +508,11 @@ export default function ARStarAR({
 
             {/* Debug */}
             <div style={{ position: "absolute", top: 10, left: 10, zIndex: 10, backgroundColor: "rgba(0,0,0,0.8)", color: "#00ff99", padding: 10, fontFamily: "monospace", fontSize: 11, borderRadius: 4, pointerEvents: "none" }}>
-                <div>α (compass): {debug.alpha}°</div>
-                <div>β (tilt): {debug.beta}°</div>
-                <div>γ (roll): {debug.gamma}°</div>
+                <div>α (compass): {debug.alpha.toFixed(1)}°</div>
+                <div>β (tilt): {debug.beta.toFixed(1)}°</div>
+                <div>γ (roll): {debug.gamma.toFixed(1)}°</div>
                 <div>screen: {debug.screen}°</div>
-                <div>heading: {debug.heading}°</div>
+                <div>heading: {debug.heading.toFixed(1)}°</div>
             </div>
 
 
