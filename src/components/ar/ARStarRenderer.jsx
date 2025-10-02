@@ -6,10 +6,42 @@ import { raDecToAltAz, enuVectorFromAltAz, projectToScreen } from '@/lib/astro/p
 import { useDeviceOrientation } from '@/hooks/useDeviceOrientation'
 import { useGeolocation } from '@/hooks/useGeolocation'
 
+// Quaternion helpers
+function qAxisAngle(x, y, z, angle) {
+  const half = angle * 0.5
+  const s = Math.sin(half)
+  return { x: x * s, y: y * s, z: z * s, w: Math.cos(half) }
+}
+function qMul(a, b) {
+  return {
+    w: a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
+    x: a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
+    y: a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
+    z: a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,
+  }
+}
+function qConj(q) { return { x: -q.x, y: -q.y, z: -q.z, w: q.w } }
+function qRotateVec(q, v) {
+  const vx = { x: v.x, y: v.y, z: v.z, w: 0 }
+  const qi = qConj(q)
+  const t = qMul(q, vx)
+  const r = qMul(t, qi)
+  return { x: r.x, y: r.y, z: r.z }
+}
+
 // Phase 1: simple Canvas overlay rendering bright dots for nearby stars.
-export default function ARStarRenderer({ fovDeg = 65, maxStars = 500 }) {
+export default function ARStarRenderer({ fovDeg = 65, maxStars = 500, orientation: extOrientation }) {
   const canvasRef = useRef(null)
-  const orientation = useDeviceOrientation({ autoStart: true })
+  const internalOri = useDeviceOrientation({ autoStart: true })
+  const orientation = extOrientation && (Number.isFinite(extOrientation.alpha) || Number.isFinite(extOrientation.beta))
+    ? extOrientation
+    : internalOri
+  const oriRef = useRef({ alpha: 0, beta: 0 })
+  useEffect(() => {
+    const a = Number.isFinite(orientation.alpha) ? orientation.alpha : 0
+    const b = Number.isFinite(orientation.beta) ? orientation.beta : 0
+    oriRef.current = { alpha: a, beta: b }
+  }, [orientation.alpha, orientation.beta])
   const geo = useGeolocation({ autoRequest: true, autoWatch: true, enableHighAccuracy: true })
   const FALLBACK = { lat: 20.67053404521385, lon: -103.37833696752742 }
 
@@ -57,27 +89,31 @@ export default function ARStarRenderer({ fovDeg = 65, maxStars = 500 }) {
         lastLSTRecalc = ts
       }
 
-      // Map ENU to camera frame using device yaw/pitch (ignore roll for now)
-      const a = (orientation.alpha ?? 0) * Math.PI / 180 // yaw (0=N)
-      const b = (orientation.beta ?? 0) * Math.PI / 180  // pitch up/down
-      const cosA = Math.cos(-a), sinA = Math.sin(-a)   // rotate by -alpha around Z
-      const cosB = Math.cos(-b), sinB = Math.sin(-b)   // then -beta around X
+      // Screen orientation (portrait/landscape) compensation
+      const angle = (window.screen?.orientation?.angle ?? window.orientation ?? 0)
+      const orientRad = Math.round(angle / 90) * 90 * Math.PI / 180
+
+      // Map ENU to camera frame using quaternion to avoid gimbal lock.
+      const rawA = oriRef.current.alpha || 0
+      const rawB = oriRef.current.beta  || 0
+      const rawG = Number.isFinite(orientation.gamma) ? orientation.gamma : 0
+      const a = rawA * Math.PI / 180
+      const b = rawB * Math.PI / 180
+      const g = rawG * Math.PI / 180
+
+      // DeviceOrientation (Z-X'-Y'') and screen orientation
+      const qz = qAxisAngle(0,0,1, -a)  // -alpha
+      const qx = qAxisAngle(1,0,0, -b)  // -beta
+      const qy = qAxisAngle(0,1,0, -g)  // -gamma
+      const qOrient = qAxisAngle(0,0,1, -orientRad) // screen rotation
+      const qCam = qMul(qOrient, qMul(qy, qMul(qx, qz)))
 
       for (let i = 0; i < stars.length; i += 1) {
         const { altitude, azimuth } = cachedAltAz[i]
         if (altitude < -5) continue // skip far below horizon
         const v = enuVectorFromAltAz(altitude, azimuth)
-
-        // Z-rotation (heading)
-        const vx1 =  v.x * cosA - v.y * sinA
-        const vy1 =  v.x * sinA + v.y * cosA
-        const vz1 =  v.z
-        // X-rotation (pitch)
-        const vx2 = vx1
-        const vy2 = vy1 * cosB - vz1 * sinB
-        const vz2 = vy1 * sinB + vz1 * cosB
-
-        const p = projectToScreen({ x: vx2, y: vy2, z: vz2 }, fovDeg, w, h)
+        const vCam = qRotateVec(qCam, v)
+        const p = projectToScreen(vCam, fovDeg, w, h)
         if (!p) continue
         // brightness heuristic
         const star = stars[i]
@@ -88,6 +124,18 @@ export default function ARStarRenderer({ fovDeg = 65, maxStars = 500 }) {
         ctx.fillStyle = `rgba(255,255,255,${0.5 + 0.5 * bright})`
         ctx.fill()
       }
+
+      // Debug crosshair
+      ctx.strokeStyle = 'rgba(0,255,153,0.4)'
+      ctx.beginPath(); ctx.moveTo(w/2-10,h/2); ctx.lineTo(w/2+10,h/2); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(w/2,h/2-10); ctx.lineTo(w/2,h/2+10); ctx.stroke()
+
+      // Debug text
+      ctx.fillStyle = 'rgba(0,255,153,0.7)'
+      ctx.font = '12px monospace'
+      const dbgA = oriRef.current.alpha
+      const dbgB = oriRef.current.beta
+      ctx.fillText(`alpha=${dbgA.toFixed(1)} beta=${dbgB.toFixed(1)} orient=${Math.round(orientRad*180/Math.PI)}`, 8, 16)
 
       raf = requestAnimationFrame(draw)
     }

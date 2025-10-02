@@ -37,7 +37,7 @@ export default function ARExperiencePage() {
         zIndex={-1}
         onReady={(ctl) => { cameraCtl.current = ctl }}
       />
-      <ARStarRenderer />
+      <ARStarRenderer orientation={scan.sensors.orientation} />
       {scan.ui.Overlay}
       <AROverlay
         discoveries={discovery.discoveryCount}

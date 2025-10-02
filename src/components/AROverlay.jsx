@@ -23,7 +23,7 @@ export default function AROverlay({ discoveries = 0, onScan, scanning = false, p
       role="presentation"
     >
       {/* Top bar */}
-      <div className="absolute left-3 right-3 top-3 flex justify-center text-md opacity-70 flex gap-2 rounded-md p-2 bg-primary backdrop-blur-md font-semibold text-white"><p>Discoveries:</p>
+      <div className="hidden absolute left-3 right-3 top-3 flex justify-center text-md opacity-70 flex gap-2 rounded-md p-2 bg-primary backdrop-blur-md font-semibold text-white"><p>Discoveries:</p>
         <Badge className="bg-cosmic-blue-500/80 text-white border-transparent">{discoveries}</Badge>
       </div>
 
