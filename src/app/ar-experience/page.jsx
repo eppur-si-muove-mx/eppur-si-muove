@@ -54,7 +54,7 @@ export default function ARExperiencePage() {
 
 
       {/* iOS enable buttons - visible when camera not active */}
-      <div className="fixed bottom-18 left-0 right-0 z-[3] flex justify-center pointer-events-none">
+      <div className="fixed bottom-5 left-0 right-0 z-[3] flex justify-center pointer-events-none">
         <div className="flex gap-3 pointer-events-auto">
           <Button
             onClick={() => cameraCtl.current.start()}
@@ -63,25 +63,8 @@ export default function ARExperiencePage() {
           >
             Enable Camera
           </Button>
-          <Button
-            onClick={() => scan.sensors.startMotion?.()}
-            size="sm"
-            className="opacity-60 backdrop-blur-md"
-          >
-            {scan.sensors.motionStatus === 'active' ? 'Motion Enabled' : 'Enable Motion'}
-          </Button>
         </div>
       </div>
-
-      {/* Motion status chip (render after mount to avoid hydration mismatch) */}
-      {mounted && (
-        <div className="fixed top-3 right-3 z-[3] pointer-events-none">
-          <span className={`pointer-events-auto rounded-md border px-2 py-1 text-xs backdrop-blur-md ${scan.sensors.motionStatus === 'active' ? 'bg-green-500/70 text-white' : scan.sensors.motionStatus === 'denied' ? 'bg-red-500/70 text-white' : 'bg-white/60'}`}>
-            Motion: {scan.sensors.motionStatus}
-          </span>
-        </div>
-      )}
-
       {mock.enabled && mock.DebugPanel}
     </div>
   )

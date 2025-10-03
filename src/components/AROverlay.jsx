@@ -32,13 +32,6 @@ export default function AROverlay({ discoveries = 0, onScan, scanning = false, p
       <main className="absolute inset-0 flex items-center justify-center">
         <TargetReticle />
       </main>
-
-      {/* Bottom CTA */}
-      <div className="absolute left-0 right-0 bottom-4 flex justify-center pointer-events-auto w-full max-w-screen-sm px-3!">
-        <Button className="px-8 w-full opacity-70 backdrop-blur-md" size="lg" onClick={onScan} disabled={scanning}>
-          {scanning ? `Scanning… ${progress}%` : 'Scan for Exoplanets'}
-        </Button>
-      </div>
     </div>
   )
 }

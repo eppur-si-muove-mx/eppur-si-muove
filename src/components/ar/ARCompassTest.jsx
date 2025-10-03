@@ -507,15 +507,11 @@ export default function ARStarAR({
             )}
 
             {/* Debug */}
-            <div style={{ position: "absolute", top: 10, left: 10, zIndex: 10, backgroundColor: "rgba(0,0,0,0.8)", color: "#00ff99", padding: 10, fontFamily: "monospace", fontSize: 11, borderRadius: 4, pointerEvents: "none" }}>
-                <div>α (compass): {debug.alpha.toFixed(1)}°</div>
-                <div>β (tilt): {debug.beta.toFixed(1)}°</div>
-                <div>γ (roll): {debug.gamma.toFixed(1)}°</div>
-                <div>screen: {debug.screen}°</div>
-                <div>heading: {debug.heading.toFixed(1)}°</div>
+            <div className="fixed top-0 left-0 z-10 opacity-75 text-white p-4 font-mono text-sm rounded-md pointer-events-none flex flex-col gap-1">
+                    <div className="bg-black/80 px-2 py-1 rounded-sm">α {debug.alpha.toFixed(1)}°</div>
+                    <div className="bg-black/80 px-2 py-1 rounded-sm">β {debug.beta.toFixed(1)}°</div>
+                    <div className="bg-black/80 px-2 py-1 rounded-sm">γ {debug.gamma.toFixed(1)}°</div>
             </div>
-
-
         </>
     );
 }
