@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { raDecToAltAz } from "@/lib/astro/projection";
 import { CelestialDataManager } from "@/utils/data/celestialDataManager";
+import ARMotionOverlay from "@/components/ar/ARMotionOverlay";
 
 
 // 3D Horizon Bezel: ring + ticks + cardinal + numeric labels
@@ -181,6 +182,7 @@ export default function ARStarAR({
     fovDeg = 65,
     smoothing = 0.2,
     maxStars = 600,           // tune this
+    onEnableCamera,
 }) {
     const mountRef = useRef(null);
     const [motionReady, setMotionReady] = useState(false);
@@ -486,32 +488,7 @@ export default function ARStarAR({
                 }}
             />
 
-            {/* Motion permission — keep your fixed positioning tweak */}
-            {!motionReady && (
-                <button
-                    onClick={enableMotion}
-                    style={{
-                        position: "fixed",   // <- your tweak
-                        left: 16,
-                        bottom: 16,
-                        zIndex: 10,
-                        padding: "10px 14px",
-                        background: "#0b0",
-                        color: "white",
-                        borderRadius: 8,
-                        border: "none",
-                    }}
-                >
-                    Enable Motion
-                </button>
-            )}
-
-            {/* Debug */}
-            <div className="fixed top-0 left-0 z-10 opacity-75 text-white p-4 font-mono text-sm rounded-md pointer-events-none flex flex-col gap-1">
-                    <div className="bg-black/80 px-2 py-1 rounded-sm">α {debug.alpha.toFixed(1)}°</div>
-                    <div className="bg-black/80 px-2 py-1 rounded-sm">β {debug.beta.toFixed(1)}°</div>
-                    <div className="bg-black/80 px-2 py-1 rounded-sm">γ {debug.gamma.toFixed(1)}°</div>
-            </div>
+            <ARMotionOverlay enableMotion={enableMotion} debug={debug} onEnableCamera={onEnableCamera} />
         </>
     );
 }

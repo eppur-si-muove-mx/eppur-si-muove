@@ -6,7 +6,6 @@ import AROverlay from '@/components/AROverlay'
 import ARStarRenderer from '@/components/ar/ARStarRenderer'
 import ARCompassTest from '@/components/ar/ARCompassTest'
 import { useEffect, useRef, useState } from 'react'
-import { Button } from '@/components/ui/button'
 import { useScan } from '@/components/ar/ScanHandler'
 import { useDiscovery } from '@/contexts/DiscoveryContext'
 import { useMockOrientation } from '@/utils/mockData/sensorSimulator'
@@ -38,7 +37,7 @@ export default function ARExperiencePage() {
         zIndex={-1}
         onReady={(ctl) => { cameraCtl.current = ctl }}
       />
-      <ARCompassTest orientation={scan.sensors.orientation} />
+      <ARCompassTest orientation={scan.sensors.orientation} onEnableCamera={() => cameraCtl.current.start()} />
       {scan.ui.Overlay}
       <AROverlay
         discoveries={discovery.discoveryCount}
@@ -53,18 +52,7 @@ export default function ARExperiencePage() {
       />
 
 
-      {/* iOS enable buttons - visible when camera not active */}
-      <div className="fixed bottom-5 left-0 right-0 z-[3] flex justify-center pointer-events-none">
-        <div className="flex gap-3 pointer-events-auto">
-          <Button
-            onClick={() => cameraCtl.current.start()}
-            size="sm"
-            className="opacity-60 backdrop-blur-md"
-          >
-            Enable Camera
-          </Button>
-        </div>
-      </div>
+      {/* iOS enable buttons moved into ARMotionOverlay */}
       {mock.enabled && mock.DebugPanel}
     </div>
   )
