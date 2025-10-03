@@ -183,6 +183,8 @@ export default function ARStarAR({
     smoothing = 0.2,
     maxStars = 600,           // tune this
     onEnableCamera,
+    motionStatus,
+    cameraActive,
 }) {
     const mountRef = useRef(null);
     const [motionReady, setMotionReady] = useState(false);
@@ -488,7 +490,13 @@ export default function ARStarAR({
                 }}
             />
 
-            <ARMotionOverlay enableMotion={enableMotion} debug={debug} onEnableCamera={onEnableCamera} />
+            <ARMotionOverlay
+                enableMotion={enableMotion}
+                debug={debug}
+                onEnableCamera={onEnableCamera}
+                motionStatus={motionStatus}
+                cameraActive={cameraActive}
+            />
         </>
     );
 }

@@ -13,6 +13,7 @@ import { useMockOrientation } from '@/utils/mockData/sensorSimulator'
 export default function ARExperiencePage() {
   const isIOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent)
   const cameraCtl = useRef({ start: () => {}, stop: () => {} })
+  const [cameraActive, setCameraActive] = useState(false)
   const scan = useScan()
   const discovery = useDiscovery()
   const mock = useMockOrientation()
@@ -35,9 +36,20 @@ export default function ARExperiencePage() {
         autoStart={false}
         facingMode="environment"
         zIndex={-1}
-        onReady={(ctl) => { cameraCtl.current = ctl }}
+        onReady={(ctl) => {
+          cameraCtl.current = ctl
+          setCameraActive(ctl.isActive)
+        }}
       />
-      <ARCompassTest orientation={scan.sensors.orientation} onEnableCamera={() => cameraCtl.current.start()} />
+      <ARCompassTest
+        orientation={scan.sensors.orientation}
+        onEnableCamera={async () => {
+          await cameraCtl.current.start()
+          setCameraActive(true)
+        }}
+        motionStatus={scan.sensors.motionStatus}
+        cameraActive={cameraActive}
+      />
       {scan.ui.Overlay}
       <AROverlay
         discoveries={discovery.discoveryCount}

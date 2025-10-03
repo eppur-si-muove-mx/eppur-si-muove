@@ -5,20 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Rotate3D, ScanEye } from "lucide-react";
 import GyroAxisIndicator from "@/components/ar/GyroAxisIndicator";
 
-export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera }) {
+export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, motionStatus, cameraActive }) {
     return (
         <div className="fixed top-0 left-0 right-0 bottom-0 z-10 flex justify-between gap-2 p-4">
             
             {/* Grant Access to sensors */}
             <div className="text-white font-semibold flex gap-4 h-fit items-center">
-                Sensors
+                <p className="text-white font-semibold">Sensors</p>
                 <div className="flex gap-1 items-center text-white font-semibold justify-end">
                     <Button
                         onClick={enableMotion}
                         size="icon"
-                        variant="ghost"
+                        variant="outline"
+                        className="bg-transparent"
                     >
-                        <Rotate3D />
+                        <Rotate3D color={motionStatus === 'granted' ? 'green' : 'red'} />
                     </Button>
                 </div>
 
@@ -26,9 +27,10 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera })
                     <Button
                         onClick={onEnableCamera}
                         size="icon"
-                        variant="ghost"
+                        variant="outline"
+                        className="bg-transparent"
                     >
-                        <ScanEye />
+                        <ScanEye color={cameraActive ? 'green' : 'red'} />
                     </Button>
                 </div>
             </div>
