@@ -10,6 +10,7 @@ import { useScan } from '@/components/ar/ScanHandler'
 import { useDiscovery } from '@/contexts/DiscoveryContext'
 import { useMockOrientation } from '@/utils/mockData/sensorSimulator'
 import { toast } from 'sonner'
+import PlanetDetailOverlay from '@/components/PlanetDetailOverlay'
 
 export default function ARExperiencePage() {
   const isIOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent)
@@ -19,6 +20,7 @@ export default function ARExperiencePage() {
   const discovery = useDiscovery()
   const mock = useMockOrientation()
   const [mounted, setMounted] = useState(false)
+  const [planetOpen, setPlanetOpen] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -30,6 +32,14 @@ export default function ARExperiencePage() {
     window.addEventListener('keydown', onKey, { passive: false })
     return () => window.removeEventListener('keydown', onKey)
   }, [scan.scanArea])
+
+  // Open planet detail when scan completes with results
+  useEffect(() => {
+    if ((scan.state === 'complete' || discovery.scanState === 'complete')) {
+      const hasResults = (scan.results && scan.results.length) || (discovery.currentScanResults && discovery.currentScanResults.length)
+      if (hasResults) setPlanetOpen(true)
+    }
+  }, [scan.state, discovery.scanState, scan.results, discovery.currentScanResults])
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
@@ -77,6 +87,8 @@ export default function ARExperiencePage() {
         scanning={scan.state === 'scanning' || scan.state === 'processing'}
         progress={scan.ui.progress}
       />
+
+      <PlanetDetailOverlay open={planetOpen} onClose={() => setPlanetOpen(false)} />
 
 
       {/* iOS enable buttons moved into ARMotionOverlay */}
