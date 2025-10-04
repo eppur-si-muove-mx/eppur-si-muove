@@ -53,7 +53,7 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, m
             </div>
 
             <div className="p-4 flex items-center justify-center">
-                <Button className="bg-blue-200 text-blue-900 opacity-80" onClick={() => { console.log('clicked')}}>
+                <Button className="bg-blue-200 text-blue-900 opacity-80" onClick={onSearchNewHome}>
                     Search a new home
                 </Button>
             </div>

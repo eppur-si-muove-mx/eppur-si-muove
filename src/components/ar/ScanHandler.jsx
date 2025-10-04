@@ -85,7 +85,7 @@ export function useScan() {
       if (!isFinite(alpha) || !isFinite(beta) || !isFinite(gamma)) {
         try { await device.start() } catch (_) {}
         const start = Date.now()
-        while (Date.now() - start < 1500) {
+        while (Date.now() - start < 2500) {
           await new Promise(r => setTimeout(r, 100))
           const o = readOrientation()
           if (isFinite(o.alpha) && isFinite(o.beta) && isFinite(o.gamma)) {
@@ -93,8 +93,10 @@ export function useScan() {
           }
         }
       }
+      // Fallback to safe defaults if still unavailable (desktop/no sensor scenarios)
       if (!isFinite(alpha) || !isFinite(beta) || !isFinite(gamma)) {
-        throw new Error('Orientation not available. Enable Motion access.')
+        console.warn('[SCAN] orientation unavailable; falling back to defaults')
+        alpha = 0; beta = 0; gamma = 0
       }
       if (!isFinite(latitude) || !isFinite(longitude)) {
         // Request and wait briefly for a GPS fix (iOS may take a moment)

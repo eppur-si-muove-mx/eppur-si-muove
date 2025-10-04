@@ -60,14 +60,13 @@ export default function ARExperiencePage() {
         }}
         motionStatus={scan.sensors.motionStatus}
         cameraActive={cameraActive}
-        onSearchNewHome={() => {
+        onSearchNewHome={async () => {
+          // Trigger scan to show scanning/reticle animation
+          try { await scan.scanArea() } catch (_) {}
+
+          // Then simulate a positive match regardless of real scan results
           const fakeResults = [
-            {
-              id: 'simulated-1',
-              name: 'Mock Celestial Object',
-              altitude: 42,
-              azimuth: 135,
-            },
+            { id: 'simulated-1', name: 'Mock Celestial Object', altitude: 42, azimuth: 135 },
           ]
           toast.success('Positive match! Found 1 object.', { id: 'scan' })
           try { navigator.vibrate?.([20, 30, 20]) } catch (_) {}
