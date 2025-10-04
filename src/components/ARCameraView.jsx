@@ -92,7 +92,7 @@ export default function ARCameraView(props) {
           vec2 uv = vec2(uUvScale.x * vUv.x + uUvOffset.x, uUvScale.y * vUv.y + uUvOffset.y);
           vec4 src = texture2D(tVideo, uv);
           float lum = dot(src.rgb, vec3(0.299, 0.587, 0.114));
-          vec3 greenTone = vec3(0.0, 0.2, 1.0) * lum;
+          vec3 greenTone = vec3(0.0, 0.9, 1.0) * lum;
           vec3 tinted = mix(src.rgb, greenTone, uTintStrength);
           gl_FragColor = vec4(tinted, 1.0);
         }
@@ -237,7 +237,6 @@ export default function ARCameraView(props) {
   return (
     <div className={className} style={containerStyle} aria-live="polite">
       <canvas ref={canvasRef} style={canvasStyle} />
-      {/* Only the camera background is green-tinted; overlays render above normally */}
     </div>
   )
 }
