@@ -16,43 +16,57 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, m
     //     return cameraActive ? 'text-blue-200' : 'text-blue-50'
     // }, [cameraActive])
 
+    const motionGranted = (motionStatus === 'active') || Number.isFinite(debug?.alpha) || Number.isFinite(debug?.beta) || Number.isFinite(debug?.gamma)
+
     return (
         <div className="fixed top-0 left-0 right-0 bottom-0 flex flex-col justify-between h-full z-10">
-            <div className=" z-10 flex justify-between  gap-2 p-4">
+            <div className=" z-10 flex justify-start  gap-2 p-4">
+                {/* Gyroscope */}
+                <div className="text-blue-200 font-semibold flex gap-4 flex-col items-start w-fit text-sm font-thin">
+                    <GyroAxisIndicator alpha={debug.alpha} beta={debug.beta} gamma={debug.gamma} size={24} />
+                    <div className="mt-2"><span className="text-sm">α {debug.alpha.toFixed(1)}°</span></div>
+                    <div><span className="text-sm">β {debug.beta.toFixed(1)}°</span></div>
+                    <div><span className="text-sm">γ {debug.gamma.toFixed(1)}°</span></div>
+                </div>
+                {/*Sidebar trigger*/}
+            </div>
+
+            <div className="p-4 flex flex-col items-end justify-end w-full gap-10">
                 {/* Grant Access to sensors */}
-                <div className="text-blue-200 font-semibold flex flex-col gap-4 h-fit items-start">
-                    <div className="flex gap-1 items-center text-blue-200 font-semibold justify-end">
+                <div className="text-blue-200 font-semibold flex flex-col gap-4 h-fit items-start font-thin text-xs">
+                    <div className="flex gap-4 items-center text-blue-200 font-semibold justify-end">
+                        <p>
+                            <span className={`${motionGranted ? 'text-green-300' : 'text-blue-200/40'}`}>on</span>
+                            /
+                            <span className={`${motionGranted ? 'text-blue-200/40' : 'text-blue-200'}`}>off</span>
+                        </p>
                         <Button
                             onClick={enableMotion}
                             size="icon"
-                            variant="ghost"
+                            variant="outline"
+                            className="bg-transparent border-blue-200"
                         >
                             <Rotate3D className="size-6" />
-
                         </Button>
                     </div>
 
-                    <div className="flex gap-1 items-center text-blue-200 font-semibold justify-end">
+                    <div className="flex gap-4 items-center text-blue-200 font-semibold justify-end">
+                        <p>
+                            <span className={`${cameraActive ? 'text-green-300' : 'text-blue-200/40'}`}>on</span>
+                            /
+                            <span className={`${cameraActive ? 'text-blue-200/40' : 'text-blue-200'}`}>off</span>
+                        </p>
                         <Button
                             onClick={onEnableCamera}
                             size="icon"
-                            variant="ghost"
+                            variant="outline"
+                            className="bg-transparent border-blue-200"
                         >
                             <ScanEye className="size-6" />
                         </Button>
                     </div>
                 </div>
 
-                {/* Gyroscope */}
-                <div className="text-blue-200 font-semibold flex gap-4 flex-col items-end w-fit text-sm font-thin">
-                    <GyroAxisIndicator alpha={debug.alpha} beta={debug.beta} gamma={debug.gamma} size={24} />
-                    <div className="mt-2"><span className="text-sm">{debug.alpha.toFixed(1)}° α</span></div>
-                    <div><span className="text-sm">{debug.beta.toFixed(1)}° β</span></div>
-                    <div><span className="text-sm">{debug.gamma.toFixed(1)}° γ</span></div>
-                </div>
-            </div>
-
-            <div className="p-4 flex items-center justify-center">
                 <Button className="bg-blue-200 text-blue-900 opacity-80" onClick={onSearchNewHome}>
                     Search a new home
                 </Button>
