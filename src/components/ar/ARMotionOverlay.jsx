@@ -43,7 +43,7 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, m
                 </div>
 
                 {/* Gyroscope */}
-                <div className="text-blue-200 font-semibold flex gap-4 flex-col items-end w-fit text-sm">
+                <div className="text-blue-200 font-semibold flex gap-4 flex-col items-end w-fit text-sm font-thin">
                     <GyroAxisIndicator alpha={debug.alpha} beta={debug.beta} gamma={debug.gamma} size={24} />
                     <div className="mt-2"><span className="text-sm">{debug.alpha.toFixed(1)}° α</span></div>
                     <div><span className="text-sm">{debug.beta.toFixed(1)}° β</span></div>
@@ -52,7 +52,7 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, m
             </div>
 
             <div className="p-4 flex items-center justify-center">
-                <Button className="bg-blue-200 text-blue-900">
+                <Button className="bg-blue-200 text-blue-900 opacity-80">
                     Search a new home
                 </Button>
             </div>
