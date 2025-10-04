@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useScan } from '@/components/ar/ScanHandler'
 import { useDiscovery } from '@/contexts/DiscoveryContext'
 import { useMockOrientation } from '@/utils/mockData/sensorSimulator'
+import { toast } from 'sonner'
 
 export default function ARExperiencePage() {
   const isIOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent)
@@ -49,6 +50,20 @@ export default function ARExperiencePage() {
         }}
         motionStatus={scan.sensors.motionStatus}
         cameraActive={cameraActive}
+        onSearchNewHome={() => {
+          const fakeResults = [
+            {
+              id: 'simulated-1',
+              name: 'Mock Celestial Object',
+              altitude: 42,
+              azimuth: 135,
+            },
+          ]
+          toast.success('Positive match! Found 1 object.', { id: 'scan' })
+          try { navigator.vibrate?.([20, 30, 20]) } catch (_) {}
+          discovery.setScanResults(fakeResults)
+          discovery.updateScanState('complete')
+        }}
       />
       {scan.ui.Overlay}
       <AROverlay

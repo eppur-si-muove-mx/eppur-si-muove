@@ -203,7 +203,7 @@ function ScanningOverlay({ visible, direction, progress, highlight }) {
       </div>
 
       {/* Progress and text */}
-      {visible && (
+      {/* {visible && (
         <div className="absolute bottom-10 w-full flex flex-col items-center gap-2">
           <div className="text-sm opacity-80">Scanning {direction}...</div>
           <div className="w-64 h-2 bg-white/10 rounded overflow-hidden">
@@ -211,12 +211,12 @@ function ScanningOverlay({ visible, direction, progress, highlight }) {
           </div>
           <div className="text-xs opacity-70">{progress}%</div>
         </div>
-      )}
+      )} */}
 
       {/* Direction flash after complete */}
-      {highlight && (
+      {/* {highlight && (
         <div className="absolute top-10 px-3 py-1 rounded bg-cosmic-blue-500/80 text-white text-sm">Objects ahead ({direction})</div>
-      )}
+      )} */}
 
       <style jsx>{`
         .scan-ring {

@@ -4,8 +4,9 @@ import React, { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Rotate3D, ScanEye } from "lucide-react";
 import GyroAxisIndicator from "@/components/ar/GyroAxisIndicator";
+import { toast } from "sonner";
 
-export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, motionStatus, cameraActive }) {
+export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, motionStatus, cameraActive, onSearchNewHome }) {
 
     // const rotate3DColor = useMemo(() => {
     //     return motionStatus !== 'idle' ? 'text-blue-200' : 'text-blue-50'
@@ -52,7 +53,7 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, m
             </div>
 
             <div className="p-4 flex items-center justify-center">
-                <Button className="bg-blue-200 text-blue-900 opacity-80">
+                <Button className="bg-blue-200 text-blue-900 opacity-80" onClick={() => { console.log('clicked')}}>
                     Search a new home
                 </Button>
             </div>

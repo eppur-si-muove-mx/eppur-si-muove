@@ -185,6 +185,7 @@ export default function ARStarAR({
     onEnableCamera,
     motionStatus,
     cameraActive,
+    onSearchNewHome,
 }) {
     const mountRef = useRef(null);
     const [motionReady, setMotionReady] = useState(false);
@@ -496,6 +497,7 @@ export default function ARStarAR({
                 onEnableCamera={onEnableCamera}
                 motionStatus={motionStatus}
                 cameraActive={cameraActive}
+                onSearchNewHome={onSearchNewHome}
             />
         </>
     );
