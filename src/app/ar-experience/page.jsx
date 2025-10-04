@@ -61,6 +61,10 @@ export default function ARExperiencePage() {
         motionStatus={scan.sensors.motionStatus}
         cameraActive={cameraActive}
         onSearchNewHome={async () => {
+          // Reset discovery state to avoid immediate reopen from previous results
+          discovery.setScanResults([])
+          discovery.updateScanState('scanning')
+
           // Trigger scan to show scanning/reticle animation
           try { await scan.scanArea() } catch (_) {}
 
@@ -78,6 +82,10 @@ export default function ARExperiencePage() {
       <AROverlay
         discoveries={discovery.discoveryCount}
         onScan={async () => {
+          // Reset discovery state before a new scan
+          discovery.setScanResults([])
+          discovery.updateScanState('scanning')
+
           const res = await scan.scanArea()
           if (res.length) console.log('[AR] found objects', res)
           discovery.setScanResults(res)
