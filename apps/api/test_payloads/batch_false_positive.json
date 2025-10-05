@@ -1,0 +1,41 @@
+{
+  "description": "False positive example. Planet is not a candidate.",
+  "candidates": [
+    {
+      "pl_rade": 5.8181633,
+      "pl_eqt": 3127.204052,
+      "pl_orbper": 2.1713484,
+      "st_teff": 10249,
+      "st_rad": 2.16986,
+      "st_logg": 4.19,
+      "st_tmag": 9.604,
+      "ra": 112.357708,
+      "dec": -12.69596,
+      "st_dist": 485.735
+    },
+    {
+      "pl_rade": 11.3113,
+      "pl_eqt": 4260,
+      "pl_orbper": 3.5730141,
+      "st_teff": 9219,
+      "st_rad": 2.15,
+      "st_logg": 4.14,
+      "st_tmag": 9.1355,
+      "ra": 122.178195,
+      "dec": -48.802811,
+      "st_dist": 356.437
+    },
+    {
+      "pl_rade": 14.0608342,
+      "pl_eqt": 1158.131037,
+      "pl_orbper": 12.6889415,
+      "st_teff": 7601,
+      "st_rad": 1.53641,
+      "st_logg": 4.31,
+      "st_tmag": 10.6257,
+      "ra": 116.110771,
+      "dec": -36.098285,
+      "st_dist": 368.646
+    }
+  ]
+}

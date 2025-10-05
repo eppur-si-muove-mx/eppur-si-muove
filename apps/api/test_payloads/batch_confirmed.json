@@ -1,0 +1,41 @@
+{
+  "description": "Batch de 3 candidatos confirmados",
+  "candidates": [
+    {
+      "pl_rade": 13.1874503,
+      "pl_eqt": 1525.904809,
+      "pl_orbper": 1.4303699,
+      "st_teff": 5600,
+      "st_rad": 0.890774,
+      "st_logg": 4.48851,
+      "st_tmag": 12.4069,
+      "ra": 318.737012,
+      "dec": -55.871863,
+      "st_dist": 375.31
+    },
+    {
+      "pl_rade": 15.4706,
+      "pl_eqt": 1408,
+      "pl_orbper": 4.4119378,
+      "st_teff": 6280,
+      "st_rad": 1.21,
+      "st_logg": 4.32092,
+      "st_tmag": 9.7109,
+      "ra": 87.139821,
+      "dec": -63.988329,
+      "st_dist": 175.631
+    },
+    {
+      "pl_rade": 14.581841,
+      "pl_eqt": 1504.858953,
+      "pl_orbper": 3.547854,
+      "st_teff": 6351,
+      "st_rad": 1.4,
+      "st_logg": 4.22896,
+      "st_tmag": 11.5232,
+      "ra": 312.457488,
+      "dec": -24.428694,
+      "st_dist": 411.211
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "description": "Payload con 3 ejemplos de REFUTED",
+  "samples": [
+    {
+      "id": "1022.01",
+      "expected_disposition": "REFUTED",
+      "features": {
+        "pl_rade": 3.4262,
+        "pl_eqt": 3230,
+        "pl_orbper": 3.09574,
+        "st_teff": 6084,
+        "st_rad": 1.41,
+        "st_logg": 4.13,
+        "st_tmag": 8.72924,
+        "ra": 162.96491,
+        "dec": -5.788708,
+        "st_dist": 120.666
+      }
+    },
+    {
+      "id": "1051.01",
+      "expected_disposition": "REFUTED",
+      "features": {
+        "pl_rade": 2.3751494,
+        "pl_eqt": 685.2,
+        "pl_orbper": 21.701669,
+        "st_teff": 5625,
+        "st_rad": 1.56486,
+        "st_logg": 4.438,
+        "st_tmag": 7.1278,
+        "ra": 40.365939,
+        "dec": -71.462749,
+        "st_dist": 53.19149
+      }
+    },
+    {
+      "id": "1088.01",
+      "expected_disposition": "REFUTED",
+      "features": {
+        "pl_rade": 5.48364,
+        "pl_eqt": 2148,
+        "pl_orbper": 1.15395,
+        "st_teff": 6093,
+        "st_rad": 1.4,
+        "st_logg": 4.2,
+        "st_tmag": 10.4613,
+        "ra": 272.311383,
+        "dec": -76.300955,
+        "st_dist": 240.901
+      }
+    }
+  ]
+}
