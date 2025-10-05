@@ -228,16 +228,16 @@ import { calculate_celestial_coordinates } from './calculate_celestial_coordinat
 // const time = new Date(); // UTC now
 // const pointing = { alpha: 30, beta: -10, gamma: 5 }; // from DeviceOrientationEvent
 
-const observer = { lat: 0, lon: 0 }; // CDMX
-const time = new Date(); // UTC now
-const pointing = { alpha: 30, beta: 90, gamma: 0 }; // from DeviceOrientationEvent
+// const observer = { lat: 0, lon: 0 }; // CDMX
+// const time = new Date(); // UTC now
+// const pointing = { alpha: 30, beta: 90, gamma: 0 }; // from DeviceOrientationEvent
 
-let distance_start = 1;
-let distance_end = 1.5;
-let reticula_aperture_deg = 1;
+// let distance_start = 1;
+// let distance_end = 1.5;
+// let reticula_aperture_deg = 1;
 
-const { ra_dec_start, ra_dec_end } =
-  calculate_celestial_reticula({ observer, time, pointing, distance_start, distance_end, reticula_aperture_deg });
+// const { ra_dec_start, ra_dec_end } =
+//   calculate_celestial_reticula({ observer, time, pointing, distance_start, distance_end, reticula_aperture_deg });
 
-console.log({ ra_dec_start, ra_dec_end, distance_start, distance_end });
+// console.log({ ra_dec_start, ra_dec_end, distance_start, distance_end });
 /**/
