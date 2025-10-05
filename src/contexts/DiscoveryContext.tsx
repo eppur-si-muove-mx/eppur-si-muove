@@ -61,6 +61,7 @@ type DiscoveryContextValue = {
 
   followedAliens: Planet[]
   followedHearts: Planet[]
+  followedAll: Planet[]
 }
 
 const DiscoveryContext = createContext<DiscoveryContextValue | null>(null)
@@ -161,6 +162,13 @@ export function DiscoveryProvider({ children }: { children: React.ReactNode }) {
     })
   }, [discoveredPlanets, flagsById])
 
+  const followedAll = useMemo(() => {
+    return discoveredPlanets.filter(p => {
+      const f = flagsById[p.id_objeto]
+      return !!f?.orbit
+    })
+  }, [discoveredPlanets, flagsById])
+
   const value = useMemo<DiscoveryContextValue>(() => ({
     currentScanResults,
     discoveries,
@@ -188,7 +196,8 @@ export function DiscoveryProvider({ children }: { children: React.ReactNode }) {
 
     followedAliens,
     followedHearts,
-  }), [addDiscovery, clearScanResults, currentScanResults, discoveries, scanCounter, scanState, setScanResults, updateScanState, mockPlanets, discoveredPlanets, currentPlanetId, overlayOpen, flagsById, nextMockScan, getCurrentPlanet, getFlags, setFlag, toggleFlag, openPlanet, closeOverlay, followedAliens, followedHearts])
+    followedAll,
+  }), [addDiscovery, clearScanResults, currentScanResults, discoveries, scanCounter, scanState, setScanResults, updateScanState, mockPlanets, discoveredPlanets, currentPlanetId, overlayOpen, flagsById, nextMockScan, getCurrentPlanet, getFlags, setFlag, toggleFlag, openPlanet, closeOverlay, followedAliens, followedHearts, followedAll])
 
   return (
     <DiscoveryContext.Provider value={value}>{children}</DiscoveryContext.Provider>

@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Rotate3D, ScanEye, PanelRight, Orbit, View } from "lucide-react";
+import { Rotate3D, ScanEye, PanelRight, Orbit, View, HeartOff, Alien } from "lucide-react";
 import GyroAxisIndicator from "@/components/ar/GyroAxisIndicator";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
@@ -50,9 +50,40 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, m
                         </SheetHeader>
                         <div className="p-4 relative">
                             <Accordion type="single" collapsible className="text-blue-200">
+                                <AccordionItem value="followed">
+                                    <AccordionTrigger>
+                                        Orbiting
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                        <div className="flex flex-col gap-2">
+                                            {d.followedAll.length === 0 && (
+                                                <div className="text-sm opacity-70">No planets yet</div>
+                                            )}
+                                            {d.followedAll.map(p => (
+                                                <div key={p.id_objeto} className="flex items-center justify-between gap-2">
+                                                    <div className="truncate max-w-[200px]">{p.nickname || p.id_objeto}</div>
+                                                    <div className="flex gap-0">
+                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.openPlanet(p.id_objeto)}>
+                                                            <View className="size-4 text-blue-200" />
+                                                        </Button>
+                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.setFlag(p.id_objeto, 'alien', false)}>
+                                                            <img src="/icons/icon-alien-unchecked.png" className="size-4" />
+                                                        </Button>
+                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.setFlag(p.id_objeto, 'heart', false)}>
+                                                            <img src="/icons/icon-heart-unchecked.png" className="size-4" />
+                                                        </Button>
+                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.toggleFlag(p.id_objeto, 'orbit')}>
+                                                            <Orbit className="size-4 text-blue-200" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
                                 <AccordionItem value="alien">
                                     <AccordionTrigger>
-                                        Potential life (followed)
+                                        I want to believe...
                                     </AccordionTrigger>
                                     <AccordionContent>
                                         <div className="flex flex-col gap-2">
@@ -66,8 +97,14 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, m
                                                         <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.openPlanet(p.id_objeto)}>
                                                             <View className="size-4 text-blue-200" />
                                                         </Button>
+                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.setFlag(p.id_objeto, 'alien', false)}>
+                                                        <img src="/icons/icon-alien-unchecked.png" className="size-4" />
+                                                        </Button>
+                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.setFlag(p.id_objeto, 'heart', false)}>
+                                                        <img src="/icons/icon-heart-unchecked.png" className="size-4" />
+                                                        </Button>
                                                         <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.toggleFlag(p.id_objeto, 'orbit')}>
-                                                        <Orbit className="size-4 text-blue-200" />
+                                                            <Orbit className="size-4 text-blue-200" />
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -77,7 +114,7 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, m
                                 </AccordionItem>
                                 <AccordionItem value="heart">
                                     <AccordionTrigger>
-                                        Liked look (followed)
+                                        Pretty little things
                                     </AccordionTrigger>
                                     <AccordionContent>
                                         <div className="flex flex-col gap-2">
@@ -91,8 +128,14 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, m
                                                         <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.openPlanet(p.id_objeto)}>
                                                             <View className="size-4 text-blue-200" />
                                                         </Button>
+                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.setFlag(p.id_objeto, 'heart', false)}>
+                                                        <img src="/icons/icon-heart-unchecked.png" className="size-4" />
+                                                        </Button>
+                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.setFlag(p.id_objeto, 'alien', false)}>
+                                                        <img src="/icons/icon-alien-unchecked.png" className="size-4" />
+                                                        </Button>
                                                         <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.toggleFlag(p.id_objeto, 'orbit')}>
-                                                        <Orbit className="size-4 text-blue-200" />
+                                                            <Orbit className="size-4 text-blue-200" />
                                                         </Button>
                                                     </div>
                                                 </div>
