@@ -65,7 +65,15 @@ export default function PlanetDetailOverlay({ open = false, onClose }) {
               </Button>
             </div>
 
-            <div className="flex flex-col gap-2 text-sm md:text-base text-blue-200 font-thin w-full">
+            <div className="flex flex-col gap-2 text-sm md:text-base text-blue-200 font-thin w-full max-h-[230px] overflow-y-auto overflow-x-hidden">
+              <div><span className="font-semibold">Radius:</span> 1.34 earth radius</div>
+              <div><span className="font-semibold">Mass:</span> 2.36 earth masses</div>
+              <div><span className="font-semibold">Orbital distance:</span> 0.409UA</div>
+              <div><span className="font-semibold">Orbital period:</span> 112.3 earth days</div>
+              <div><span className="font-semibold">Temperature:</span> 233K (-40°C)</div>
+              <div><span className="font-semibold">Atmospheric composition:</span> H₂O, CO₂, CH₄ (metano)</div>
+              <div><span className="font-semibold">Albedo:</span> 0.6</div>
+              <div><span className="font-semibold">Density:</span> 4.8g/cm³</div>
               <div><span className="font-semibold">Radius:</span> 1.34 earth radius</div>
               <div><span className="font-semibold">Mass:</span> 2.36 earth masses</div>
               <div><span className="font-semibold">Orbital distance:</span> 0.409UA</div>
