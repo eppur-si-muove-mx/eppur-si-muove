@@ -48,7 +48,7 @@ export default function PlanetDetailOverlay({ open = false, onClose }) {
             <div className="text-blue-200 font-semibold text-lg">{name}</div>
             <div className="flex items-center justify-center ">
                 <img
-                  src={"/planets/planet-sample-01.png"}
+                  src={planet.path_to_image || "/planets/planet-sample-01.png"}
                   alt="Planeta descubierto"
                   className="block w-[240px] h-[240px] object-cover"
                 />
