@@ -105,15 +105,22 @@ class ModelService:
         # Make prediction
         prediction = int(self.pipeline.predict(df)[0])
         probabilities = self.pipeline.predict_proba(df)[0]
-        probability_confirmed = float(probabilities[1])
         
-        # Determine confidence level
-        confidence = self._get_confidence_level(probability_confirmed)
+        # For multiclass: get probabilities for all classes
+        probability_dict = {
+            self.reverse_mapping[i]: float(prob) 
+            for i, prob in enumerate(probabilities)
+        }
+        max_probability = float(max(probabilities))
+        
+        # Determine confidence level based on max probability
+        confidence = self._get_confidence_level(max_probability)
         
         return {
             "prediction": self.reverse_mapping[prediction],
             "prediction_code": prediction,
-            "probability": probability_confirmed,
+            "probabilities": probability_dict,
+            "max_probability": max_probability,
             "confidence": confidence,
         }
     
@@ -143,14 +150,14 @@ class ModelService:
         Determine confidence level based on probability.
         
         Args:
-            probability: Probability value between 0 and 1
+            probability: Maximum probability value between 0 and 1
             
         Returns:
             Confidence level: 'high', 'medium', or 'low'
         """
-        if probability >= 0.8 or probability <= 0.2:
+        if probability >= 0.7:
             return "high"
-        elif probability >= 0.6 or probability <= 0.4:
+        elif probability >= 0.5:
             return "medium"
         else:
             return "low"

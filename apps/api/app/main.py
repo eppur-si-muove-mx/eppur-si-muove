@@ -46,36 +46,41 @@ app.add_middleware(
 # Pydantic models for request/response validation
 class ExoplanetFeatures(BaseModel):
     """Features required for exoplanet classification."""
-    radio_planeta: float = Field(..., description="Planet radius")
-    temp_planeta: float = Field(..., description="Planet temperature in Kelvin")
-    periodo_orbital: float = Field(..., description="Orbital period in days")
-    temp_estrella: float = Field(..., description="Star temperature in Kelvin")
-    radio_estrella: float = Field(..., description="Star radius")
-    loc1_ra: float = Field(..., description="Right Ascension coordinate")
-    loc2_dec: float = Field(..., description="Declination coordinate")
-    loc3_dist: float = Field(..., description="Distance to star in parsecs")
+    pl_rade: float = Field(..., description="Planet radius in Earth radii")
+    pl_eqt: float = Field(..., description="Planet equilibrium temperature in Kelvin")
+    pl_orbper: float = Field(..., description="Orbital period in days")
+    st_teff: float = Field(..., description="Star effective temperature in Kelvin")
+    st_rad: float = Field(..., description="Star radius in solar radii")
+    st_logg: float = Field(..., description="Star surface gravity (log g)")
+    st_tmag: float = Field(..., description="Star TESS magnitude (brightness)")
+    ra: float = Field(..., description="Right Ascension (celestial longitude)")
+    dec: float = Field(..., description="Declination (celestial latitude)")
+    st_dist: float = Field(..., description="Distance to star in parsecs")
 
     class Config:
         json_schema_extra = {
             "example": {
-                "radio_planeta": 1.0,
-                "temp_planeta": 300.0,
-                "periodo_orbital": 365.0,
-                "temp_estrella": 5778.0,
-                "radio_estrella": 1.0,
-                "loc1_ra": 180.0,
-                "loc2_dec": 0.0,
-                "loc3_dist": 100.0
+                "pl_rade": 1.0,
+                "pl_eqt": 300.0,
+                "pl_orbper": 365.0,
+                "st_teff": 5778.0,
+                "st_rad": 1.0,
+                "st_logg": 4.4,
+                "st_tmag": 10.0,
+                "ra": 180.0,
+                "dec": 0.0,
+                "st_dist": 100.0
             }
         }
 
 
 class PredictionResponse(BaseModel):
     """Response model for prediction endpoint."""
-    prediction: str = Field(..., description="CONFIRMED or CANDIDATE")
-    prediction_code: int = Field(..., description="1 for CONFIRMED, 0 for CANDIDATE")
-    probability: float = Field(..., description="Probability of being CONFIRMED")
-    confidence: str = Field(..., description="high, medium, or low")
+    prediction: str = Field(..., description="Predicted class: CANDIDATE, CONFIRMED, FALSE POSITIVE, or REFUTED")
+    prediction_code: int = Field(..., description="Class code: 0=CANDIDATE, 1=CONFIRMED, 2=FALSE POSITIVE, 3=REFUTED")
+    probabilities: dict = Field(..., description="Probabilities for all classes")
+    max_probability: float = Field(..., description="Maximum probability (confidence in prediction)")
+    confidence: str = Field(..., description="Confidence level: high, medium, or low")
     timestamp: str = Field(..., description="Prediction timestamp")
 
 
@@ -162,7 +167,7 @@ async def predict(
         # Add timestamp
         result["timestamp"] = datetime.utcnow().isoformat() + "Z"
         
-        logger.info(f"Prediction result: {result['prediction']} (prob: {result['probability']:.4f})")
+        logger.info(f"Prediction result: {result['prediction']} (prob: {result['max_probability']:.4f})")
         
         return PredictionResponse(**result)
         

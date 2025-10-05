@@ -35,7 +35,14 @@ class TrainingService:
             "MODEL_PATH", 
             "./models/exoplanets_lgbm_pipeline.joblib"
         )
-        self.label_mapping = {'CANDIDATE': 0, 'CONFIRMED': 1}
+        # Updated label mapping for 4-class classification
+        # Including FALSE POSITIVE and REFUTED for improved prediction quality
+        self.label_mapping = {
+            'CANDIDATE': 0, 
+            'CONFIRMED': 1, 
+            'FALSE POSITIVE': 2, 
+            'REFUTED': 3
+        }
         
     def model_exists(self) -> bool:
         """Check if a trained model already exists."""
@@ -53,28 +60,29 @@ class TrainingService:
         """
         logger.info(f"Preparing data. Shape: {df.shape}")
         
-        # Drop id_objeto if exists
-        if 'id_objeto' in df.columns:
-            df = df.drop(columns=['id_objeto'])
-            logger.info("Dropped 'id_objeto' column")
+        # Drop id_obj column if exists (updated column name)
+        if 'id_obj' in df.columns:
+            df = df.drop(columns=['id_obj'])
+            logger.info("Dropped 'id_obj' column")
         
-        # Validate disposicion column
-        if 'disposicion' not in df.columns:
-            raise ValueError("Missing required column: 'disposicion'")
+        # Validate disposition column (updated column name)
+        if 'disposition' not in df.columns:
+            raise ValueError("Missing required column: 'disposition'")
         
-        # Map disposicion to binary
-        df['disposicion'] = df['disposicion'].map(self.label_mapping)
+        # Map disposition to class labels (4 classes)
+        df['disposition'] = df['disposition'].map(self.label_mapping)
         
         # Check for unmapped values
-        if df['disposicion'].isna().any():
+        if df['disposition'].isna().any():
+            unmapped_values = df[df['disposition'].isna()]['disposition'].unique()
             raise ValueError(
-                "Invalid values in 'disposicion' column. "
-                "Expected only 'CANDIDATE' or 'CONFIRMED'"
+                f"Invalid values in 'disposition' column: {unmapped_values}. "
+                "Expected: 'CANDIDATE', 'CONFIRMED', 'FALSE POSITIVE', or 'REFUTED'"
             )
         
         # Separate features and target
-        X = df.drop(columns=['disposicion'])
-        y = df['disposicion'].astype(int)
+        X = df.drop(columns=['disposition'])
+        y = df['disposition'].astype(int)
         
         # Get numeric features
         numeric_features = X.columns.tolist()
@@ -85,7 +93,7 @@ class TrainingService:
         logger.info(f"Class distribution: {class_counts.to_dict()}")
         
         if len(class_counts) < 2:
-            raise ValueError("Training data must contain both CANDIDATE and CONFIRMED classes")
+            raise ValueError("Training data must contain at least 2 different disposition classes")
         
         # Stratified split
         X_train, X_test, y_train, y_test = train_test_split(
@@ -117,11 +125,12 @@ class TrainingService:
             remainder='drop'
         )
         
-        # Full pipeline with LightGBM
+        # Full pipeline with LightGBM for multiclass classification
         pipeline = Pipeline(steps=[
             ('preprocess', preprocess),
             ('model', lgb.LGBMClassifier(
-                objective='binary',
+                objective='multiclass',  # Changed from 'binary' to 'multiclass'
+                num_class=4,  # 4 disposition classes
                 random_state=42,
                 n_estimators=100,
                 learning_rate=0.1,
@@ -147,8 +156,8 @@ class TrainingService:
         y_pred = pipeline.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
         
-        # Get classification report as dict
-        labels = ['CANDIDATE', 'CONFIRMED']
+        # Get classification report as dict with 4 classes
+        labels = ['CANDIDATE', 'CONFIRMED', 'FALSE POSITIVE', 'REFUTED']
         report = classification_report(y_test, y_pred, target_names=labels, output_dict=True)
         
         # Confusion matrix
