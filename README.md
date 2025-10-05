@@ -9,9 +9,12 @@ eppur-si-muove/
 ├── apps/
 │   ├── api/              # FastAPI backend service
 │   │   ├── app/          # Application code
+│   │   │   ├── services/ # Model & training services
+│   │   │   └── schemas/  # Pydantic schemas
 │   │   ├── models/       # ML models (LightGBM)
 │   │   ├── Dockerfile
-│   │   └── requirements.txt
+│   │   ├── requirements.txt
+│   │   └── *.md          # API documentation
 │   └── web/              # Next.js frontend
 │       ├── src/
 │       ├── public/
@@ -21,11 +24,11 @@ eppur-si-muove/
 │       ├── docker-compose.yml
 │       ├── uploads/
 │       └── extensions/
-├── migrate/              # ML model notebooks and research
-│   ├── notebook.ipynb
+├── docs/                 # Project documentation
 │   ├── DEPLOYMENT_PLAN.md
-│   ├── EXPLANATION.md
 │   └── research.md
+├── data/                 # Training datasets
+│   └── data_set_S_FP.csv
 ├── packages/             # Shared packages (future)
 └── docker-compose.yml    # Full stack orchestration
 ```
@@ -130,25 +133,28 @@ The project uses **LightGBM** for binary classification of exoplanets (CANDIDATE
 - `loc2_dec` - Declination coordinate
 - `loc3_dist` - Distance to star (parsecs)
 
-### Migration Status
+### Training
 
-⚠️ **In Progress**: The model is currently in the `migrate/` directory as a Jupyter notebook. Migration to the FastAPI service is pending.
+✅ **Model Migration Complete**: All code from Jupyter notebook has been migrated to FastAPI services.
 
-**Next Steps**:
-1. Export trained model from notebook
-2. Integrate model loading in FastAPI
-3. Implement prediction endpoints
-4. Add batch processing
+**Training Options**:
+1. **From CSV**: `POST /api/v1/training/train-csv` (best for large datasets)
+2. **From JSON**: `POST /api/v1/training/train-json` (best for API integrations like Directus)
 
-See `migrate/DEPLOYMENT_PLAN.md` for detailed migration strategy.
+**Training Data**: Sample dataset available in `data/data_set_S_FP.csv`
+
+See [`apps/api/TRAINING_GUIDE.md`](apps/api/TRAINING_GUIDE.md) for complete training documentation.
 
 ## 📚 Documentation
 
 - **API Service**: [`apps/api/README.md`](apps/api/README.md)
+- **Training Guide**: [`apps/api/TRAINING_GUIDE.md`](apps/api/TRAINING_GUIDE.md)
+- **API Testing**: [`apps/api/TEST_API.md`](apps/api/TEST_API.md)
+- **Migration Summary**: [`apps/api/MIGRATION_SUMMARY.md`](apps/api/MIGRATION_SUMMARY.md)
 - **Web App**: [`apps/web/README.md`](apps/web/README.md) (if exists)
 - **Directus Setup**: [`infra/directus/README.md`](infra/directus/README.md)
-- **Migration Guide**: [`migrate/DEPLOYMENT_PLAN.md`](migrate/DEPLOYMENT_PLAN.md)
-- **ML Research**: [`migrate/research.md`](migrate/research.md)
+- **Deployment Plan**: [`docs/DEPLOYMENT_PLAN.md`](docs/DEPLOYMENT_PLAN.md)
+- **ML Research**: [`docs/research.md`](docs/research.md)
 
 ## 🛠️ Development
 
@@ -233,4 +239,4 @@ docker-compose exec api python -c "print('Hello')"
 
 ---
 
-**Status**: 🚧 Under Development - Model migration in progress
+**Status**: ✅ **Production Ready** - All services functional, model migrated, training endpoints available
