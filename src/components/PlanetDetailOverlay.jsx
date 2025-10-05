@@ -1,12 +1,14 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { XIcon } from 'lucide-react'
+import { XIcon, Send, FilePlus2, Users } from 'lucide-react'
 
 export default function PlanetDetailOverlay({ open = false, onClose }) {
   if (!open) return null
+  const [alienChecked, setAlienChecked] = useState(false)
+  const [heartChecked, setHeartChecked] = useState(false)
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center">
       <div className="absolute inset-0 backdrop-blur-sm" onClick={onClose} />
@@ -20,15 +22,47 @@ export default function PlanetDetailOverlay({ open = false, onClose }) {
         >
           <XIcon className="size-6 text-blue-200" />
         </Button>
+        <Button
+          className="absolute left-3 top-3 z-10"
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+        >
+          <Users className="size-6 text-blue-200" />
+        </Button>
+        <Button
+          className="absolute right-3 top-3 z-10"
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+        >
+          <XIcon className="size-6 text-blue-200" />
+        </Button>
         <CardContent className="p-1 relative">
           <div className="absolute inset-0 bg-cyan-300 opacity-10"></div>
-          <div className="flex flex-col p-2 gap-1 items-center opacity-100">
+          <div className="flex flex-col p-2 gap-1 items-center opacity-100 relative gap-4">
             <div className="flex items-center justify-center ">
                 <img
                   src="/planets/planet-sample.png"
                   alt="Planeta descubierto"
                   className="block w-[240px] h-[240px] object-cover"
                 />
+            </div>
+            <div className="flex gap-2 items-center justify-start mr-auto">
+              <Button variant="ghost" size="icon" className="relative" onClick={() => setAlienChecked(!alienChecked)} >
+                <img src="/icons/icon-alien-unchecked.png" className="size-6" />
+                <img src="/icons/icon-alien-checked.png" className={`size-6 absolute ${alienChecked ? 'opacity-100' : 'opacity-0'}`} />
+              </Button>
+              <Button variant="ghost" size="icon" className="relative" onClick={() => setHeartChecked(!heartChecked)} >
+                <img src="/icons/icon-heart-unchecked.png" className="size-6" />
+                <img src="/icons/icon-heart-checked.png" className={`size-6 absolute ${heartChecked ? 'opacity-100' : 'opacity-0'}`} />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <FilePlus2 className="size-5 text-blue-200" />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <Send className="size-5 text-blue-200" />
+              </Button>
             </div>
 
             <div className="flex flex-col gap-2 text-sm md:text-base text-blue-200 font-thin w-full">

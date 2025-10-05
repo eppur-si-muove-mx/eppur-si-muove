@@ -2,9 +2,10 @@
 
 import React, { useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Rotate3D, ScanEye } from "lucide-react";
+import { Rotate3D, ScanEye, PanelRight, Orbit } from "lucide-react";
 import GyroAxisIndicator from "@/components/ar/GyroAxisIndicator";
 import { toast } from "sonner";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 
 export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, motionStatus, cameraActive, onSearchNewHome }) {
 
@@ -20,7 +21,7 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, m
 
     return (
         <div className="fixed top-0 left-0 right-0 bottom-0 flex flex-col justify-between h-full z-10">
-            <div className=" z-10 flex justify-start  gap-2 p-4">
+            <div className=" z-10 flex justify-between gap-2 p-4">
                 {/* Gyroscope */}
                 <div className="text-blue-200 font-semibold flex gap-4 flex-col items-start w-fit text-sm font-thin">
                     <GyroAxisIndicator alpha={debug.alpha} beta={debug.beta} gamma={debug.gamma} size={24} />
@@ -29,6 +30,23 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, m
                     <div><span className="text-sm">γ {debug.gamma.toFixed(1)}°</span></div>
                 </div>
                 {/*Sidebar trigger*/}
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <Button
+                            size="icon"
+                            variant="outline"
+                            className="bg-transparent border-blue-200"
+                        >
+                            <Orbit className="size-6 text-blue-200" />
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" overlay={false} className="bg-transparent border-none shadow-none backdrop-blur-sm">
+                        <div className="absolute top-0 left-0 right-0 bottom-0 bg-cyan-300 opacity-20"></div>
+                        <SheetHeader>
+                            <SheetTitle className="text-blue-200">Planets Discovered</SheetTitle>
+                        </SheetHeader>
+                    </SheetContent>
+                </Sheet>
             </div>
 
             <div className="p-4 flex flex-col items-end justify-end w-full gap-10">

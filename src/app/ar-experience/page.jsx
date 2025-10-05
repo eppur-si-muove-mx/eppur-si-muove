@@ -20,7 +20,7 @@ export default function ARExperiencePage() {
   const discovery = useDiscovery()
   const mock = useMockOrientation()
   const [mounted, setMounted] = useState(false)
-  const [planetOpen, setPlanetOpen] = useState(false)
+  const [planetOpen, setPlanetOpen] = useState(true)
 
   useEffect(() => { setMounted(true) }, [])
 

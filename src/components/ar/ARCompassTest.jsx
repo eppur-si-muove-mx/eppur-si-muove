@@ -135,10 +135,10 @@ function addHorizonBezel(scene, camera, {
 
     // --- Cardinal letters ---
     const cardinals = [
-        { label: "N", az: 0, color: colorCardinal },
-        { label: "E", az: 90, color: colorLabel },
-        { label: "S", az: 180, color: colorLabel },
-        { label: "W", az: 270, color: colorLabel },
+        { label: "", az: 0, color: colorCardinal },
+        { label: "", az: 90, color: colorLabel },
+        { label: "", az: 180, color: colorLabel },
+        { label: "", az: 270, color: colorLabel },
     ];
 
     cardinals.forEach(({ label, az, color }) => {
