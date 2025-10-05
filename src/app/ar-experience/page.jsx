@@ -20,7 +20,7 @@ export default function ARExperiencePage() {
   const discovery = useDiscovery()
   const mock = useMockOrientation()
   const [mounted, setMounted] = useState(false)
-  const [planetOpen, setPlanetOpen] = useState(true)
+  const [planetOpen, setPlanetOpen] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -33,13 +33,8 @@ export default function ARExperiencePage() {
     return () => window.removeEventListener('keydown', onKey)
   }, [scan.scanArea])
 
-  // Open planet detail when scan completes with results
-  useEffect(() => {
-    if ((scan.state === 'complete' || discovery.scanState === 'complete')) {
-      const hasResults = (scan.results && scan.results.length) || (discovery.currentScanResults && discovery.currentScanResults.length)
-      if (hasResults) setPlanetOpen(true)
-    }
-  }, [scan.state, discovery.scanState, scan.results, discovery.currentScanResults])
+  // Keep overlay open state in sync with context overlay
+  useEffect(() => { setPlanetOpen(discovery.overlayOpen) }, [discovery.overlayOpen])
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
@@ -61,20 +56,14 @@ export default function ARExperiencePage() {
         motionStatus={scan.sensors.motionStatus}
         cameraActive={cameraActive}
         onSearchNewHome={async () => {
-          // Reset discovery state to avoid immediate reopen from previous results
-          discovery.setScanResults([])
+          // Simulate a scan and advance mock planet sequence
           discovery.updateScanState('scanning')
-
-          // Trigger scan to show scanning/reticle animation
           try { await scan.scanArea() } catch (_) {}
-
-          // Then simulate a positive match regardless of real scan results
-          const fakeResults = [
-            { id: 'simulated-1', name: 'Mock Celestial Object', altitude: 42, azimuth: 135 },
-          ]
-          toast.success('Positive match! Found 1 object.', { id: 'scan' })
-          try { navigator.vibrate?.([20, 30, 20]) } catch (_) {}
-          discovery.setScanResults(fakeResults)
+          const planet = discovery.nextMockScan()
+          if (planet) {
+            toast.success(`Positive match! Found ${planet.nickname || planet.id_objeto}.`, { id: 'scan' })
+            try { navigator.vibrate?.([20, 30, 20]) } catch (_) {}
+          }
           discovery.updateScanState('complete')
         }}
       />
@@ -82,20 +71,20 @@ export default function ARExperiencePage() {
       <AROverlay
         discoveries={discovery.discoveryCount}
         onScan={async () => {
-          // Reset discovery state before a new scan
-          discovery.setScanResults([])
           discovery.updateScanState('scanning')
-
           const res = await scan.scanArea()
-          if (res.length) console.log('[AR] found objects', res)
-          discovery.setScanResults(res)
+          const planet = discovery.nextMockScan()
+          if (planet) {
+            toast.success(`Positive match! Found ${planet.nickname || planet.id_objeto}.`, { id: 'scan' })
+            try { navigator.vibrate?.([20, 30, 20]) } catch (_) {}
+          }
           discovery.updateScanState('complete')
         }}
         scanning={scan.state === 'scanning' || scan.state === 'processing'}
         progress={scan.ui.progress}
       />
 
-      <PlanetDetailOverlay open={planetOpen} onClose={() => setPlanetOpen(false)} />
+      <PlanetDetailOverlay open={planetOpen} onClose={() => { setPlanetOpen(false); discovery.closeOverlay() }} />
 
 
       {/* iOS enable buttons moved into ARMotionOverlay */}
