@@ -61,17 +61,8 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, m
                                             )}
                                             {d.followedAll.map(p => (
                                                 <div key={p.id_objeto} className="flex items-center justify-between gap-2">
-                                                    <div className="truncate max-w-[200px]">{p.nickname || p.id_objeto}</div>
+                                                    <div className="truncate max-w-[200px]" onClick={() => d.openPlanet(p.id_objeto)}>{p.nickname || p.id_objeto}</div>
                                                     <div className="flex gap-0">
-                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.openPlanet(p.id_objeto)}>
-                                                            <View className="size-4 text-blue-200" />
-                                                        </Button>
-                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.setFlag(p.id_objeto, 'alien', false)}>
-                                                            <img src="/icons/icon-alien-unchecked.png" className="size-4" />
-                                                        </Button>
-                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.setFlag(p.id_objeto, 'heart', false)}>
-                                                            <img src="/icons/icon-heart-unchecked.png" className="size-4" />
-                                                        </Button>
                                                         <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.toggleFlag(p.id_objeto, 'orbit')}>
                                                             <Orbit className="size-4 text-blue-200" />
                                                         </Button>
@@ -92,16 +83,10 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, m
                                             )}
                                             {d.followedAliens.map(p => (
                                                 <div key={p.id_objeto} className="flex items-center justify-between gap-2">
-                                                    <div className="truncate max-w-[200px]">{p.nickname || p.id_objeto}</div>
+                                                    <div className="truncate max-w-[200px]" onClick={() => d.openPlanet(p.id_objeto)}>{p.nickname || p.id_objeto}</div>
                                                     <div className="flex gap-0">
-                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.openPlanet(p.id_objeto)}>
-                                                            <View className="size-4 text-blue-200" />
-                                                        </Button>
                                                         <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.setFlag(p.id_objeto, 'alien', false)}>
                                                         <img src="/icons/icon-alien-unchecked.png" className="size-4" />
-                                                        </Button>
-                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.setFlag(p.id_objeto, 'heart', false)}>
-                                                        <img src="/icons/icon-heart-unchecked.png" className="size-4" />
                                                         </Button>
                                                         <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.toggleFlag(p.id_objeto, 'orbit')}>
                                                             <Orbit className="size-4 text-blue-200" />
@@ -123,16 +108,10 @@ export default function ARMotionOverlay({ enableMotion, debug, onEnableCamera, m
                                             )}
                                             {d.followedHearts.map(p => (
                                                 <div key={p.id_objeto} className="flex items-center justify-between gap-2">
-                                                    <div className="truncate max-w-[200px]">{p.nickname || p.id_objeto}</div>
+                                                    <div className="truncate max-w-[200px]" onClick={() => d.openPlanet(p.id_objeto)}>{p.nickname || p.id_objeto}</div>
                                                     <div className="flex gap-0">
-                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.openPlanet(p.id_objeto)}>
-                                                            <View className="size-4 text-blue-200" />
-                                                        </Button>
                                                         <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.setFlag(p.id_objeto, 'heart', false)}>
                                                         <img src="/icons/icon-heart-unchecked.png" className="size-4" />
-                                                        </Button>
-                                                        <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.setFlag(p.id_objeto, 'alien', false)}>
-                                                        <img src="/icons/icon-alien-unchecked.png" className="size-4" />
                                                         </Button>
                                                         <Button size="icon" variant="ghost" className="border-blue-200 text-blue-200/90" onClick={() => d.toggleFlag(p.id_objeto, 'orbit')}>
                                                             <Orbit className="size-4 text-blue-200" />

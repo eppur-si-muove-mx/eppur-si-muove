@@ -1,79 +1,24 @@
 "use client"
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import type { SearchResult } from '@/utils/data/spatialSearch'
+import React, { createContext, useCallback, useContext, useMemo, useState } from 'react'
 
-export type ScanState = 'idle' | 'scanning' | 'processing' | 'complete'
-
-type Discovery = {
-  id: string
-  createdAt: number
-  object: any
+export const ScanState = {
+  idle: 'idle',
+  scanning: 'scanning',
+  processing: 'processing',
+  complete: 'complete',
 }
 
-type Planet = {
-  id_objeto: string
-  disposicion: string
-  radio_planeta: number
-  temp_planet: number
-  periodo_orbit: number
-  temp_estrella: number
-  radio_estrella: number
-  RA: number
-  DEC: number
-  dist: number
-  path_to_image?: string
-  nickname?: string
-}
+const DiscoveryContext = createContext(null)
 
-type PlanetFlags = {
-  orbit: boolean
-  alien: boolean
-  heart: boolean
-}
-
-type DiscoveryContextValue = {
-  currentScanResults: SearchResult[]
-  discoveries: Discovery[]
-  scanState: ScanState
-  discoveryCount: number
-  scanCounter: number
-
-  setScanResults: (objects: SearchResult[]) => void
-  addDiscovery: (object: any) => void
-  clearScanResults: () => void
-  updateScanState: (state: ScanState) => void
-
-  // Mock scanning and planet/flags state
-  mockPlanets: Planet[]
-  discoveredPlanets: Planet[]
-  currentPlanetId: string | null
-  overlayOpen: boolean
-  flagsById: Record<string, PlanetFlags>
-
-  nextMockScan: () => Planet | null
-  getCurrentPlanet: () => Planet | null
-  getFlags: (id: string) => PlanetFlags
-  setFlag: (id: string, flag: keyof PlanetFlags, value: boolean) => void
-  toggleFlag: (id: string, flag: keyof PlanetFlags) => void
-  openPlanet: (id: string) => void
-  closeOverlay: () => void
-
-  followedAliens: Planet[]
-  followedHearts: Planet[]
-  followedAll: Planet[]
-}
-
-const DiscoveryContext = createContext<DiscoveryContextValue | null>(null)
-
-export function DiscoveryProvider({ children }: { children: React.ReactNode }) {
-  const [currentScanResults, setCurrentScanResults] = useState<SearchResult[]>([])
-  const [scanState, setScanState] = useState<ScanState>('idle')
-  const [scanCounter, setScanCounter] = useState<number>(0)
-  const [discoveries, setDiscoveries] = useState<Discovery[]>([])
+export function DiscoveryProvider({ children }) {
+  const [currentScanResults, setCurrentScanResults] = useState([])
+  const [scanState, setScanState] = useState(ScanState.idle)
+  const [scanCounter, setScanCounter] = useState(0)
+  const [discoveries, setDiscoveries] = useState([])
 
   // Demo data: 10 mock planets (re-using the single available image)
-  const [mockPlanets] = useState<Planet[]>([
+  const [mockPlanets] = useState([
     { id_objeto: 'BD+20 594 b', disposicion: 'CONFIRMED', radio_planeta: 13.54, temp_planet: 1020.0, periodo_orbit: 41.685, temp_estrella: 6140.0, radio_estrella: 3.1675, RA: 181.59369, DEC: -4.9467, dist: 485.735, path_to_image: '/planets/planet-sample.png', nickname: 'planetito' },
     { id_objeto: 'Kepler-22 b', disposicion: 'CONFIRMED', radio_planeta: 2.4, temp_planet: 295.0, periodo_orbit: 289.9, temp_estrella: 5518, radio_estrella: 0.979, RA: 285.679, DEC: 47.898, dist: 195, path_to_image: '/planets/planet-sample.png', nickname: 'Kepler-22 b' },
     { id_objeto: 'HD 209458 b', disposicion: 'CONFIRMED', radio_planeta: 13.5, temp_planet: 1350, periodo_orbit: 3.5247, temp_estrella: 6071, radio_estrella: 1.2, RA: 330.794, DEC: 18.883, dist: 159, path_to_image: '/planets/planet-sample.png', nickname: 'Osiris' },
@@ -86,19 +31,17 @@ export function DiscoveryProvider({ children }: { children: React.ReactNode }) {
     { id_objeto: 'Proxima b', disposicion: 'CONFIRMED', radio_planeta: 1.1, temp_planet: 234, periodo_orbit: 11.186, temp_estrella: 3042, radio_estrella: 0.154, RA: 217.4292, DEC: -62.6795, dist: 4.25, path_to_image: '/planets/planet-sample.png', nickname: 'Proxima b' },
   ])
 
-  const [mockIndex, setMockIndex] = useState<number>(0)
-  const [discoveredPlanets, setDiscoveredPlanets] = useState<Planet[]>([])
-  const [currentPlanetId, setCurrentPlanetId] = useState<string | null>(null)
-  const [overlayOpen, setOverlayOpen] = useState<boolean>(false)
-  const [flagsById, setFlagsById] = useState<Record<string, PlanetFlags>>({})
+  const [mockIndex, setMockIndex] = useState(0)
+  const [discoveredPlanets, setDiscoveredPlanets] = useState([])
+  const [currentPlanetId, setCurrentPlanetId] = useState(null)
+  const [overlayOpen, setOverlayOpen] = useState(false)
+  const [flagsById, setFlagsById] = useState({})
 
-  // Note: skipping persistence for mock planets/flags per current requirements
-
-  const setScanResults = useCallback((objects: SearchResult[]) => {
+  const setScanResults = useCallback((objects) => {
     setCurrentScanResults(objects)
   }, [])
 
-  const addDiscovery = useCallback((object: any) => {
+  const addDiscovery = useCallback((object) => {
     setDiscoveries((prev) => prev.concat([{ id: object?.id_objeto || crypto.randomUUID(), object, createdAt: Date.now() }]))
   }, [])
 
@@ -106,30 +49,30 @@ export function DiscoveryProvider({ children }: { children: React.ReactNode }) {
     setCurrentScanResults([])
   }, [])
 
-  const updateScanState = useCallback((state: ScanState) => {
+  const updateScanState = useCallback((state) => {
     setScanState(state)
-    setScanCounter((n) => n + (state === 'complete' ? 1 : 0))
+    setScanCounter((n) => n + (state === ScanState.complete ? 1 : 0))
   }, [])
 
-  const getFlags = useCallback((id: string): PlanetFlags => {
+  const getFlags = useCallback((id) => {
     return flagsById[id] ?? { orbit: false, alien: false, heart: false }
   }, [flagsById])
 
-  const setFlag = useCallback((id: string, flag: keyof PlanetFlags, value: boolean) => {
+  const setFlag = useCallback((id, flag, value) => {
     setFlagsById((prev) => ({ ...prev, [id]: { ...getFlags(id), [flag]: value } }))
   }, [getFlags])
 
-  const toggleFlag = useCallback((id: string, flag: keyof PlanetFlags) => {
+  const toggleFlag = useCallback((id, flag) => {
     const current = getFlags(id)
     setFlag(id, flag, !current[flag])
   }, [getFlags, setFlag])
 
-  const getCurrentPlanet = useCallback((): Planet | null => {
+  const getCurrentPlanet = useCallback(() => {
     if (!currentPlanetId) return null
     return discoveredPlanets.find(p => p.id_objeto === currentPlanetId) ?? null
   }, [currentPlanetId, discoveredPlanets])
 
-  const openPlanet = useCallback((id: string) => {
+  const openPlanet = useCallback((id) => {
     setCurrentPlanetId(id)
     setOverlayOpen(true)
   }, [])
@@ -138,7 +81,7 @@ export function DiscoveryProvider({ children }: { children: React.ReactNode }) {
     setOverlayOpen(false)
   }, [])
 
-  const nextMockScan = useCallback((): Planet | null => {
+  const nextMockScan = useCallback(() => {
     if (mockIndex >= mockPlanets.length) return null
     const planet = mockPlanets[mockIndex]
     setMockIndex(i => i + 1)
@@ -169,7 +112,7 @@ export function DiscoveryProvider({ children }: { children: React.ReactNode }) {
     })
   }, [discoveredPlanets, flagsById])
 
-  const value = useMemo<DiscoveryContextValue>(() => ({
+  const value = useMemo(() => ({
     currentScanResults,
     discoveries,
     scanState,
@@ -204,7 +147,7 @@ export function DiscoveryProvider({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function useDiscovery(): DiscoveryContextValue {
+export function useDiscovery() {
   const ctx = useContext(DiscoveryContext)
   if (!ctx) throw new Error('useDiscovery must be used within DiscoveryProvider')
   return ctx
