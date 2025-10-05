@@ -3,12 +3,14 @@
 import React, { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { XIcon, Send, FilePlus2, Users } from 'lucide-react'
+import { XIcon, Send, FilePlus2, Users, Orbit } from 'lucide-react'
 
 export default function PlanetDetailOverlay({ open = false, onClose }) {
   if (!open) return null
   const [alienChecked, setAlienChecked] = useState(false)
   const [heartChecked, setHeartChecked] = useState(false)
+  const [orbitChecked, setOrbitChecked] = useState(false)
+  const orbitIconStyle = orbitChecked ? 'size-5 text-cyan-300' : 'size-5 text-blue-200'
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center">
       <div className="absolute inset-0 backdrop-blur-sm" onClick={onClose} />
@@ -51,11 +53,14 @@ export default function PlanetDetailOverlay({ open = false, onClose }) {
             <div className="flex gap-2 items-center justify-start mr-auto">
               <Button variant="ghost" size="icon" className="relative" onClick={() => setAlienChecked(!alienChecked)} >
                 <img src="/icons/icon-alien-unchecked.png" className="size-6" />
-                <img src="/icons/icon-alien-checked.png" className={`size-6 absolute ${alienChecked ? 'opacity-100' : 'opacity-0'}`} />
+                <img src="/icons/icon-alien-active.png" className={`size-6 absolute ${alienChecked ? 'opacity-100' : 'opacity-0'}`} />
               </Button>
               <Button variant="ghost" size="icon" className="relative" onClick={() => setHeartChecked(!heartChecked)} >
                 <img src="/icons/icon-heart-unchecked.png" className="size-6" />
-                <img src="/icons/icon-heart-checked.png" className={`size-6 absolute ${heartChecked ? 'opacity-100' : 'opacity-0'}`} />
+                <img src="/icons/icon-like-active.png" className={`size-6 absolute ${heartChecked ? 'opacity-100' : 'opacity-0'}`} />
+              </Button>
+              <Button variant="ghost" size="icon" className="relative" onClick={() => setOrbitChecked(!orbitChecked)} >
+                <Orbit className={orbitIconStyle} />
               </Button>
               <Button variant="ghost" size="icon">
                 <FilePlus2 className="size-5 text-blue-200" />
