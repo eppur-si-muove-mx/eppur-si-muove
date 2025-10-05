@@ -1,5 +1,32 @@
 # Plan de Despliegue: API de Clasificación de Exoplanetas
 
+---
+
+## ✅ Estado de Migración (Actualizado: 2025-10-05)
+
+### Completado
+- ✅ **Estructura del Monorepo**: Organización en apps/api/, apps/web/, infra/directus/
+- ✅ **Servicio de Modelo**: Implementado en `apps/api/app/services/model_service.py`
+- ✅ **Endpoints de Predicción**: `/api/v1/predict` y `/api/v1/predict/batch` funcionando
+- ✅ **Endpoints de Gestión**: `/api/v1/health` y `/api/v1/model/info` implementados
+- ✅ **Carga del Modelo**: LightGBM pipeline cargado exitosamente desde joblib
+- ✅ **Validación de Datos**: Pydantic models para request/response
+- ✅ **Documentación Automática**: Swagger UI disponible en `/api/docs`
+- ✅ **Scripts de Desarrollo**: Makefile con comandos para desarrollo local
+- ✅ **Pruebas Básicas**: Endpoints validados con datos de ejemplo
+
+### Pendiente
+- ⏳ **Deployment a Railway**: Configuración de deployment en la nube
+- ⏳ **Admin Endpoints**: Endpoints de administración con autenticación
+- ⏳ **Métricas y Logging**: Sistema de monitoreo avanzado
+- ⏳ **Tests Unitarios**: Suite de pruebas automatizadas
+- ⏳ **Integración con Frontend**: Conexión con Next.js app
+
+**Nota**: La API está completamente funcional en modo desarrollo local. El modelo está cargado y funcionando correctamente. 
+Servidor corriendo en: http://localhost:8000 | Docs: http://localhost:8000/api/docs
+
+---
+
 ## 1. Resumen Ejecutivo
 
 Este documento detalla el plan completo para desplegar el modelo LightGBM de clasificación de exoplanetas como una API REST en Railway, consumible desde una aplicación Next.js.

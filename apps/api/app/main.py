@@ -1,12 +1,14 @@
 """
 FastAPI application for exoplanet classification model inference.
 """
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 import logging
+
+from app.services.model_service import get_model_service, ModelService
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -86,6 +88,20 @@ class HealthResponse(BaseModel):
     timestamp: str
 
 
+@app.on_event("startup")
+async def startup_event():
+    """Load model on startup."""
+    logger.info("Starting up API...")
+    try:
+        model_service = get_model_service()
+        if model_service.is_loaded():
+            logger.info("Model loaded successfully on startup")
+        else:
+            logger.warning("Model not loaded on startup")
+    except Exception as e:
+        logger.error(f"Error during startup: {e}")
+
+
 @app.get("/", tags=["Root"])
 async def root():
     """Root endpoint."""
@@ -97,73 +113,119 @@ async def root():
 
 
 @app.get("/api/v1/health", response_model=HealthResponse, tags=["Health"])
-async def health_check():
+async def health_check(model_service: ModelService = Depends(get_model_service)):
     """
     Check API health and model status.
     """
-    # TODO: Add actual model loading check
     return HealthResponse(
         status="healthy",
-        model_loaded=False,  # Will be True once model is implemented
+        model_loaded=model_service.is_loaded(),
         timestamp=datetime.utcnow().isoformat() + "Z"
     )
 
 
 @app.post("/api/v1/predict", response_model=PredictionResponse, tags=["Prediction"])
-async def predict(features: ExoplanetFeatures):
+async def predict(
+    features: ExoplanetFeatures,
+    model_service: ModelService = Depends(get_model_service)
+):
     """
     Classify a single exoplanet candidate.
     
-    This endpoint will use the trained LightGBM model to predict whether
+    This endpoint uses the trained LightGBM model to predict whether
     a candidate is CONFIRMED or CANDIDATE based on its features.
     """
-    # TODO: Implement actual model inference
-    # For now, return a mock response
     logger.info(f"Prediction request received: {features.dict()}")
     
-    raise HTTPException(
-        status_code=501,
-        detail="Model inference not yet implemented. Awaiting migration from notebook."
-    )
+    if not model_service.is_loaded():
+        raise HTTPException(
+            status_code=503,
+            detail="Model not loaded. Please check server logs and ensure model file exists."
+        )
+    
+    try:
+        # Convert Pydantic model to dict
+        features_dict = features.dict()
+        
+        # Make prediction
+        result = model_service.predict_single(features_dict)
+        
+        # Add timestamp
+        result["timestamp"] = datetime.utcnow().isoformat() + "Z"
+        
+        logger.info(f"Prediction result: {result['prediction']} (prob: {result['probability']:.4f})")
+        
+        return PredictionResponse(**result)
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Prediction error: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 @app.post("/api/v1/predict/batch", response_model=BatchPredictionResponse, tags=["Prediction"])
-async def predict_batch(request: BatchPredictionRequest):
+async def predict_batch(
+    request: BatchPredictionRequest,
+    model_service: ModelService = Depends(get_model_service)
+):
     """
     Classify multiple exoplanet candidates in a single request.
     
     This endpoint allows batch processing of multiple candidates.
     """
-    # TODO: Implement batch prediction
     logger.info(f"Batch prediction request received: {len(request.candidates)} candidates")
     
-    raise HTTPException(
-        status_code=501,
-        detail="Batch prediction not yet implemented. Awaiting migration from notebook."
-    )
+    if not model_service.is_loaded():
+        raise HTTPException(
+            status_code=503,
+            detail="Model not loaded. Please check server logs and ensure model file exists."
+        )
+    
+    try:
+        # Convert candidates to list of dicts
+        features_list = [candidate.dict() for candidate in request.candidates]
+        
+        # Make predictions
+        results = model_service.predict_batch(features_list)
+        
+        # Add timestamps to all results
+        timestamp = datetime.utcnow().isoformat() + "Z"
+        predictions = []
+        for result in results:
+            result["timestamp"] = timestamp
+            predictions.append(PredictionResponse(**result))
+        
+        logger.info(f"Batch prediction completed: {len(predictions)} predictions")
+        
+        return BatchPredictionResponse(
+            predictions=predictions,
+            total_processed=len(predictions)
+        )
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Batch prediction error: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 @app.get("/api/v1/model/info", tags=["Model Management"])
-async def model_info():
+async def model_info(model_service: ModelService = Depends(get_model_service)):
     """
     Get information about the loaded model.
     """
-    # TODO: Return actual model metadata
-    return {
-        "model_type": "LightGBM",
-        "model_version": "not_loaded",
-        "features": [
-            "radio_planeta",
-            "temp_planeta",
-            "periodo_orbital",
-            "temp_estrella",
-            "radio_estrella",
-            "loc1_ra",
-            "loc2_dec",
-            "loc3_dist"
-        ],
-        "labels": ["CANDIDATE", "CONFIRMED"]
-    }
+    if not model_service.is_loaded():
+        raise HTTPException(
+            status_code=503,
+            detail="Model not loaded. Please check server logs and ensure model file exists."
+        )
+    
+    try:
+        return model_service.get_model_info()
+    except Exception as e:
+        logger.error(f"Error getting model info: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 if __name__ == "__main__":

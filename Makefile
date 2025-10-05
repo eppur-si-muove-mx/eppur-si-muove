@@ -46,6 +46,32 @@ dev-web: ## Run web app in development mode (local)
 dev-api: ## Run API in development mode (local)
 	cd apps/api && uvicorn app.main:app --reload
 
+dev-api-standalone: ## Run only API service (requires Python venv)
+	@echo "Starting FastAPI server..."
+	@cd apps/api && \
+	if [ ! -d "venv" ]; then \
+		echo "Creating virtual environment..."; \
+		python3 -m venv venv; \
+		echo "Installing dependencies..."; \
+		. venv/bin/activate && pip install -r requirements.txt; \
+	fi && \
+	. venv/bin/activate && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+api-only: ## Start only the API service with docker-compose
+	docker-compose up -d api
+
+api-only-logs: ## View logs from API service only
+	docker-compose logs -f api
+
+api-only-stop: ## Stop only the API service
+	docker-compose stop api
+
+api-test: ## Test API with a sample prediction
+	@echo "Testing API health endpoint..."
+	@curl -s http://localhost:8000/api/v1/health | python3 -m json.tool || echo "API not responding"
+	@echo "\nTesting model info endpoint..."
+	@curl -s http://localhost:8000/api/v1/model/info | python3 -m json.tool || echo "API not responding"
+
 install-web: ## Install web dependencies
 	cd apps/web && npm install
 

@@ -1,0 +1,10 @@
+{
+  "radio_planeta": 1.0,
+  "temp_planeta": 300.0,
+  "periodo_orbital": 365.0,
+  "temp_estrella": 5778.0,
+  "radio_estrella": 1.0,
+  "loc1_ra": 180.0,
+  "loc2_dec": 0.0,
+  "loc3_dist": 100.0
+}
