@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  directus:
+    image: directus/directus:10.10.0
+    ports:
+      - "8055:8055"
+    volumes:
+      - ./uploads:/directus/uploads
+      - ./extensions:/directus/extensions
+    environment:
+      KEY: '${DIRECTUS_KEY:-replace-with-random-value}'
+      SECRET: '${DIRECTUS_SECRET:-replace-with-random-value}'
+      
+      ADMIN_EMAIL: '${DIRECTUS_ADMIN_EMAIL:-admin@example.com}'
+      ADMIN_PASSWORD: '${DIRECTUS_ADMIN_PASSWORD:-d1r3ctu5}'
+      
+      DB_CLIENT: 'pg'
+      DB_HOST: 'postgres'
+      DB_PORT: '5432'
+      DB_DATABASE: '${DIRECTUS_DB_NAME:-directus}'
+      DB_USER: '${DIRECTUS_DB_USER:-directus}'
+      DB_PASSWORD: '${DIRECTUS_DB_PASSWORD:-directus}'
+      
+      WEBSOCKETS_ENABLED: 'true'
+      
+      # CORS Configuration
+      CORS_ENABLED: 'true'
+      CORS_ORIGIN: '${DIRECTUS_CORS_ORIGIN:-http://localhost:3000,http://localhost:3001}'
+      
+      # Cache
+      CACHE_ENABLED: 'true'
+      CACHE_STORE: 'redis'
+      REDIS: 'redis://redis:6379'
+      
+      # Public URL
+      PUBLIC_URL: '${DIRECTUS_PUBLIC_URL:-http://localhost:8055}'
+      
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - directus-network
+
+  postgres:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: '${DIRECTUS_DB_NAME:-directus}'
+      POSTGRES_USER: '${DIRECTUS_DB_USER:-directus}'
+      POSTGRES_PASSWORD: '${DIRECTUS_DB_PASSWORD:-directus}'
+    restart: unless-stopped
+    networks:
+      - directus-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U directus"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - directus-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  directus-network:
+    driver: bridge

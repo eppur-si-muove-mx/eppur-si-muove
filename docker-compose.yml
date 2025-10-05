@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  # Frontend - Next.js Application
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_DIRECTUS_URL=http://localhost:8055
+    depends_on:
+      - api
+      - directus
+    networks:
+      - eppur-network
+    restart: unless-stopped
+
+  # Backend - FastAPI Service
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./apps/api:/app
+      - ./migrate/models:/app/models  # Mount models directory
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - DIRECTUS_URL=http://directus:8055
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:3001
+    networks:
+      - eppur-network
+    restart: unless-stopped
+
+  # CMS - Directus
+  directus:
+    image: directus/directus:10.10.0
+    ports:
+      - "8055:8055"
+    volumes:
+      - directus_uploads:/directus/uploads
+      - directus_extensions:/directus/extensions
+    environment:
+      KEY: '${DIRECTUS_KEY:-replace-with-random-value}'
+      SECRET: '${DIRECTUS_SECRET:-replace-with-random-value}'
+      ADMIN_EMAIL: '${DIRECTUS_ADMIN_EMAIL:-admin@example.com}'
+      ADMIN_PASSWORD: '${DIRECTUS_ADMIN_PASSWORD:-d1r3ctu5}'
+      DB_CLIENT: 'pg'
+      DB_HOST: 'postgres'
+      DB_PORT: '5432'
+      DB_DATABASE: '${DIRECTUS_DB_NAME:-directus}'
+      DB_USER: '${DIRECTUS_DB_USER:-directus}'
+      DB_PASSWORD: '${DIRECTUS_DB_PASSWORD:-directus}'
+      WEBSOCKETS_ENABLED: 'true'
+      CORS_ENABLED: 'true'
+      CORS_ORIGIN: 'http://localhost:3000,http://localhost:3001'
+      CACHE_ENABLED: 'true'
+      CACHE_STORE: 'redis'
+      REDIS: 'redis://redis:6379'
+      PUBLIC_URL: 'http://localhost:8055'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - eppur-network
+    restart: unless-stopped
+
+  # Database - PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: '${DIRECTUS_DB_NAME:-directus}'
+      POSTGRES_USER: '${DIRECTUS_DB_USER:-directus}'
+      POSTGRES_PASSWORD: '${DIRECTUS_DB_PASSWORD:-directus}'
+    networks:
+      - eppur-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U directus"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Cache - Redis
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    networks:
+      - eppur-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+  directus_uploads:
+  directus_extensions:
+
+networks:
+  eppur-network:
+    driver: bridge
