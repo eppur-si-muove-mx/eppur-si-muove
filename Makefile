@@ -27,6 +27,9 @@ logs-api: ## View logs from API service
 logs-directus: ## View logs from Directus
 	docker compose logs -f directus
 
+logs-caddy: ## View logs from Caddy
+	docker compose logs -f caddy
+
 restart: ## Restart all services
 	docker compose restart
 
@@ -112,10 +115,10 @@ test-all: ## Test complete infrastructure - build, start all services and show s
 	@echo "\n📊 Service Status:"
 	@docker compose ps
 	@echo "\n✅ All services started!"
-	@echo "\n🌐 Access your services at:"
-	@echo "   - Web App:    http://localhost:3000"
-	@echo "   - API Docs:   http://localhost:8000/api/docs"
-	@echo "   - Directus:   http://localhost:8055"
+	@echo "\n🌐 Access your services at (HTTPS via Caddy):"
+	@echo "   - Web App:    https://app.localhost"
+	@echo "   - API Docs:   https://api.localhost/api/docs"
+	@echo "   - Directus:   https://cms.localhost"
 	@echo "\n📋 View logs with:  make logs"
 	@echo "🛑 Stop all with:   make test-stop"
 

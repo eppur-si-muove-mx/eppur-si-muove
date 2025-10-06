@@ -1,0 +1,33 @@
+# Frontend - Next.js
+app.localhost {
+    reverse_proxy web:3000
+    
+    # Logs detallados
+    log {
+        output stdout
+        format console
+        level INFO
+    }
+}
+
+# API - FastAPI
+api.localhost {
+    reverse_proxy api:8000
+
+    log {
+        output stdout
+        format console
+        level INFO
+    }
+}
+
+# CMS - Directus
+cms.localhost {
+    reverse_proxy directus:8055
+
+    log {
+        output stdout
+        format console
+        level INFO
+    }
+}
