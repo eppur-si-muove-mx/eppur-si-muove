@@ -2,17 +2,17 @@
 
 Monorepo for an exoplanet classification platform using LightGBM ML model, FastAPI backend, Next.js frontend, and Directus CMS.
 
-## ⚠️ Estado actual del proyecto
+## ⚠️ Current Project Status
 
-- Este repositorio incluye Web (Next.js), API (FastAPI + LightGBM) y Directus.
-- Orquestación: docker-compose levanta todos los servicios y crea una red compartida.
-- Integración entre tecnologías: AÚN PENDIENTE EN LA UI.
-  - El frontend actualmente utiliza un dataset mock local (ver `apps/web/src/utils/mockData/celestialObjects.js`) a través de `CelestialDataManager`, por lo que no consulta Directus ni el API en tiempo real.
-  - La conexión Web → Directus → API descrita en `docs/ARQUITECTURA_FUNCIONAL.md` es la referencia de cómo funcionará una vez cableado.
-- El API de inferencia y entrenamiento está operativo y expone endpoints documentados en Swagger.
-- Directus puede levantarse y usarse; el script `scripts/seed_directus.py` ilustra las colecciones objetivo y cómo se poblarían (requiere configurar credenciales).
+- This repository includes Web (Next.js), API (FastAPI + LightGBM), and Directus.
+- Orchestration: docker-compose starts all services and creates a shared network.
+- Integration between technologies: STILL PENDING IN THE UI.
+  - The frontend currently uses a local mock dataset (see `apps/web/src/utils/mockData/celestialObjects.js`) via `CelestialDataManager`, so it does not query Directus or the API in real time yet.
+  - The Web → Directus → API connection described in `docs/ARQUITECTURA_FUNCIONAL.md` is the reference for how it will work once wired.
+- The inference and training API is operational and exposes endpoints documented in Swagger.
+- Directus can be started and used; the script `scripts/seed_directus.py` illustrates the target collections and how they would be populated (credentials required).
 
-> Consulta el documento de Arquitectura Funcional para ver el flujo E2E propuesto: `docs/ARQUITECTURA_FUNCIONAL.md`.
+> See the Functional Architecture document for the proposed E2E flow: `docs/ARQUITECTURA_FUNCIONAL.md`.
 
 ## 🏗️ Project Structure
 
@@ -61,7 +61,7 @@ eppur-si-muove/
 - **Node.js** 20+ (for local web development)
 - **Python** 3.11+ (for local API development)
 
-> **Note:** Este proyecto tiene dos configuraciones de Docker Compose. Ver [DOCKER_STRATEGY.md](DOCKER_STRATEGY.md) para detalles sobre cuál usar.
+> **Note:** This project has two Docker Compose configurations. See [DOCKER_STRATEGY.md](DOCKER_STRATEGY.md) for details on which one to use.
 
 ## 🎯 Quick Start
 
@@ -93,6 +93,9 @@ eppur-si-muove/
    - Frontend: http://localhost:3000
    - API Docs: http://localhost:8000/api/docs
    - Directus: http://localhost:8055
+
+### 🎥 Video Demo
+- Swagger making predict requests: https://youtu.be/yV94bGyJpL4?si=kcw73K6Qg3s972Ts
 
 5. **View logs**:
    ```bash
@@ -139,7 +142,7 @@ docker compose up -d
 
 Access at http://localhost:8055
 
-> **Note:** Ver [DOCKER_STRATEGY.md](DOCKER_STRATEGY.md) para entender la diferencia entre el stack completo y Directus standalone.
+> **Note:** See [DOCKER_STRATEGY.md](DOCKER_STRATEGY.md) to understand the difference between the full stack and Directus standalone.
 
 ## 🧪 Machine Learning Model
 
@@ -168,7 +171,7 @@ The project uses **LightGBM** for binary classification of exoplanets (CANDIDATE
 See [`apps/api/TRAINING_GUIDE.md`](apps/api/TRAINING_GUIDE.md) for complete training documentation.
 
 ## 📚 Documentation
-- **Arquitectura Funcional (E2E)**: [`docs/ARQUITECTURA_FUNCIONAL.md`](docs/ARQUITECTURA_FUNCIONAL.md)
+- **Functional Architecture (E2E)**: [`docs/ARQUITECTURA_FUNCIONAL.md`](docs/ARQUITECTURA_FUNCIONAL.md)
 - **API Service**: [`apps/api/README.md`](apps/api/README.md)
 - **Training Guide**: [`apps/api/TRAINING_GUIDE.md`](apps/api/TRAINING_GUIDE.md)
 - **API Testing**: [`apps/api/TEST_API.md`](apps/api/TEST_API.md)
@@ -321,29 +324,29 @@ make shell-directus
 **Status**: ✅ **Production Ready** - All services functional, model migrated, training endpoints available
 
 
-## 🧠 Entrenamiento y uso del modelo (resumen)
+## 🧠 Model Training and Usage (Summary)
 
-- Estado actual:
-  - Existe un modelo LightGBM entrenado en `apps/api/models/exoplanets_lgbm_pipeline.joblib`.
-  - Mientras exista, el API bloquea nuevos entrenamientos para proteger el artefacto.
-- Flujo de entrenamiento:
-  - Comprobar estado: `GET /api/v1/training/status` (campo `can_train`).
-  - Entrenar desde CSV: `POST /api/v1/training/train-csv`.
-  - Entrenar desde JSON: `POST /api/v1/training/train-json` (mínimo 100 registros).
-  - Detalles y requisitos en `apps/api/TRAINING_GUIDE.md`.
-- Uso del modelo (inferencia):
-  - Predicción individual: `POST /api/v1/predict` con 8 features (`radio_planeta`, `temp_planeta`, `periodo_orbital`, `temp_estrella`, `radio_estrella`, `loc1_ra`, `loc2_dec`, `loc3_dist`).
-  - Predicción batch: `POST /api/v1/predict/batch` con `{ candidates: [...] }`.
-  - Ejemplos completos en `apps/api/TEST_API.md`.
-- Notas importantes:
-  - Para reentrenar, elimine el archivo del modelo y repita el proceso de entrenamiento.
-  - La Web aún NO consume estos endpoints; actualmente utiliza un dataset mock local. La integración se realizará al cablear Web → API y/o Web → Directus → API.
+- Current status:
+  - A trained LightGBM model exists at `apps/api/models/exoplanets_lgbm_pipeline.joblib`.
+  - While it exists, the API blocks new training runs to protect the artifact.
+- Training flow:
+  - Check status: `GET /api/v1/training/status` (field `can_train`).
+  - Train from CSV: `POST /api/v1/training/train-csv`.
+  - Train from JSON: `POST /api/v1/training/train-json` (minimum 100 records).
+  - Details and requirements in `apps/api/TRAINING_GUIDE.md`.
+- Using the model (inference):
+  - Single prediction: `POST /api/v1/predict` with 8 features (`radio_planeta`, `temp_planeta`, `periodo_orbital`, `temp_estrella`, `radio_estrella`, `loc1_ra`, `loc2_dec`, `loc3_dist`).
+  - Batch prediction: `POST /api/v1/predict/batch` with `{ candidates: [...] }`.
+  - Full examples in `apps/api/TEST_API.md`.
+- Important notes:
+  - To retrain, delete the model file and repeat the training process.
+  - The Web app does NOT consume these endpoints yet; it currently uses a local mock dataset. Integration will happen when wiring Web → API and/or Web → Directus → API.
 
-## 🔗 Cómo conectar las tecnologías (resumen)
+## 🔗 How to Connect the Technologies (Summary)
 
-- Docker Compose ya levanta Web (3000), API (8000) y Directus (8055) en la red `eppur-network`.
-- Variables de entorno clave:
+- Docker Compose already brings up Web (3000), API (8000), and Directus (8055) on the `eppur-network` bridge network.
+- Key environment variables:
   - Web: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_DIRECTUS_URL`.
   - API: `CORS_ORIGINS`, `DIRECTUS_URL`.
   - Directus: `PUBLIC_URL`, `CORS_ORIGIN`, `KEY`, `SECRET`.
-- Referencia E2E y contratos de integración: `docs/ARQUITECTURA_FUNCIONAL.md`.
+- E2E reference and integration contracts: `docs/ARQUITECTURA_FUNCIONAL.md`.
