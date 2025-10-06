@@ -47,13 +47,16 @@ eppur-si-muove/
 
 ## 🚀 Services
 
-| Service | Port | Description |
-|---------|------|-------------|
-| **Next.js Web App** | 3000 | Frontend application |
-| **FastAPI API** | 8000 | ML inference service |
-| **Directus CMS** | 8055 | Headless CMS |
+| Service | HTTPS URL | Description |
+|---------|-----------|-------------|
+| **Next.js Web App** | https://app.localhost | Frontend application |
+| **FastAPI API** | https://api.localhost | ML inference service |
+| **Directus CMS** | https://cms.localhost | Headless CMS |
+| **Caddy** | https://localhost | Reverse proxy with automatic HTTPS |
 | PostgreSQL | - | Database (internal) |
 | Redis | - | Cache (internal) |
+
+> 🔐 **All services now use HTTPS via Caddy reverse proxy**. See [HTTPS_SETUP.md](HTTPS_SETUP.md) for details.
 
 ## 📋 Prerequisites
 
@@ -89,10 +92,12 @@ eppur-si-muove/
    docker compose up -d
    ```
 
-4. **Access the services**:
-   - Frontend: http://localhost:3000
-   - API Docs: http://localhost:8000/api/docs
-   - Directus: http://localhost:8055
+4. **Access the services** (via HTTPS):
+   - Frontend: https://app.localhost
+   - API Docs: https://api.localhost/api/docs
+   - Directus: https://cms.localhost
+   
+   > ⚠️ First time: You'll see a certificate warning. This is normal for local development. Accept the certificate to continue.
 
 ### 🎥 Video Demo
 - Swagger making predict requests: https://youtu.be/yV94bGyJpL4?si=kcw73K6Qg3s972Ts
@@ -117,7 +122,7 @@ npm install
 npm run dev
 ```
 
-Access at http://localhost:3000
+Access at http://localhost:3000 (or via Caddy at https://app.localhost if running full stack)
 
 #### Backend (FastAPI)
 
@@ -129,7 +134,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-Access API docs at http://localhost:8000/api/docs
+Access API docs at http://localhost:8000/api/docs (or via Caddy at https://api.localhost if running full stack)
 
 #### Directus CMS (Standalone)
 
@@ -140,7 +145,7 @@ cp env.example .env
 docker compose up -d
 ```
 
-Access at http://localhost:8055
+Access at http://localhost:8055 (or via Caddy at https://cms.localhost if running full stack)
 
 > **Note:** See [DOCKER_STRATEGY.md](DOCKER_STRATEGY.md) to understand the difference between the full stack and Directus standalone.
 
@@ -171,6 +176,8 @@ The project uses **LightGBM** for binary classification of exoplanets (CANDIDATE
 See [`apps/api/TRAINING_GUIDE.md`](apps/api/TRAINING_GUIDE.md) for complete training documentation.
 
 ## 📚 Documentation
+- **HTTPS Setup**: [`HTTPS_SETUP.md`](HTTPS_SETUP.md) - Caddy reverse proxy configuration
+- **Docker Strategy**: [`DOCKER_STRATEGY.md`](DOCKER_STRATEGY.md) - Docker Compose configurations
 - **Functional Architecture (E2E)**: [`docs/ARQUITECTURA_FUNCIONAL.md`](docs/ARQUITECTURA_FUNCIONAL.md)
 - **API Service**: [`apps/api/README.md`](apps/api/README.md)
 - **Training Guide**: [`apps/api/TRAINING_GUIDE.md`](apps/api/TRAINING_GUIDE.md)
@@ -235,7 +242,7 @@ You can now seed the Directus CMS in two ways:
 
 ### Option A: Using the Directus Tool (no external scripts)
 - Start the stack (Directus/API): `make up` (or `make test-all`)
-- Open Directus: http://localhost:8055
+- Open Directus: https://cms.localhost
 - Use the Directus tool to insert sample data (as done in this session). See the guide:
   - docs/SEEDING_WITH_DIRECTUS_TOOL.md
 - This keeps all data creation inside Directus (planets, discoveries, training_datasets, training_runs, predictions). For planet_flags, use the small manual Flow recipe provided in the doc to set the `user` as the current user.
@@ -246,8 +253,8 @@ Once the stack is running (make up or make test-all), you can populate Directus 
 Steps:
 
 1. Ensure services are running:
-   - Directus at http://localhost:8055
-   - API at http://localhost:8000
+   - Directus at https://cms.localhost
+   - API at https://api.localhost
 2. Run the seeding script:
 
 ```bash
@@ -261,12 +268,12 @@ What it does:
 - Calls the API /api/v1/predict/batch with apps/api/test_payloads/batch_mixed_all_classes.json and stores results in predictions
 
 Directus URLs:
-- Planets: http://localhost:8055/admin/content/planets
-- Discoveries: http://localhost:8055/admin/content/discoveries
-- Planet Flags: http://localhost:8055/admin/content/planet_flags
-- Training Datasets: http://localhost:8055/admin/content/training_datasets
-- Training Runs: http://localhost:8055/admin/content/training_runs
-- Predictions: http://localhost:8055/admin/content/predictions
+- Planets: https://cms.localhost/admin/content/planets
+- Discoveries: https://cms.localhost/admin/content/discoveries
+- Planet Flags: https://cms.localhost/admin/content/planet_flags
+- Training Datasets: https://cms.localhost/admin/content/training_datasets
+- Training Runs: https://cms.localhost/admin/content/training_runs
+- Predictions: https://cms.localhost/admin/content/predictions
 
 Notes:
 - Default Directus admin credentials (override via env): admin@example.com / d1r3ctu5
@@ -291,6 +298,7 @@ make logs              # All services
 make logs-web         # Web only
 make logs-api         # API only
 make logs-directus    # Directus only
+make logs-caddy       # Caddy only
 
 # Check status
 make status

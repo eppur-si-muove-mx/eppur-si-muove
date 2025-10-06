@@ -1,20 +1,39 @@
 services:
+  # Reverse Proxy - Caddy with automatic HTTPS
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"  # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - eppur-network
+    restart: unless-stopped
+    depends_on:
+      - web
+      - api
+      - directus
+
   # Frontend - Next.js Application
   web:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
     image: eppur-si-muove-web:latest
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     volumes:
       - ./apps/web:/app
       - /app/node_modules
       - /app/.next
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-      - NEXT_PUBLIC_DIRECTUS_URL=http://localhost:8055
+      - NEXT_PUBLIC_API_URL=https://api.localhost
+      - NEXT_PUBLIC_DIRECTUS_URL=https://cms.localhost
     depends_on:
       - api
       - directus
@@ -28,8 +47,8 @@ services:
       context: ./apps/api
       dockerfile: Dockerfile
     image: eppur-si-muove-api:latest
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     volumes:
       - ./apps/api:/app
       - ./migrate/models:/app/models  # Mount models directory
@@ -37,7 +56,7 @@ services:
       - API_HOST=0.0.0.0
       - API_PORT=8000
       - DIRECTUS_URL=http://directus:8055
-      - CORS_ORIGINS=http://localhost:3000,http://localhost:3001
+      - CORS_ORIGINS=https://app.localhost,https://cms.localhost
     networks:
       - eppur-network
     restart: unless-stopped
@@ -45,8 +64,8 @@ services:
   # CMS - Directus
   directus:
     image: directus/directus:latest
-    ports:
-      - "8055:8055"
+    expose:
+      - "8055"
     volumes:
       - directus_uploads:/directus/uploads
       - directus_extensions:/directus/extensions
@@ -78,25 +97,25 @@ services:
       
       # CORS
       CORS_ENABLED: '${DIRECTUS_CORS_ENABLED:-true}'
-      CORS_ORIGIN: '${DIRECTUS_CORS_ORIGIN:-http://localhost:3000,http://localhost:3001}'
+      CORS_ORIGIN: '${DIRECTUS_CORS_ORIGIN:-https://app.localhost,https://api.localhost}'
       
       # URLs
-      PUBLIC_URL: '${DIRECTUS_PUBLIC_URL:-http://localhost:8055}'
+      PUBLIC_URL: '${DIRECTUS_PUBLIC_URL:-https://cms.localhost}'
       
       # Cookies
-      REFRESH_TOKEN_COOKIE_SECURE: '${DIRECTUS_REFRESH_TOKEN_COOKIE_SECURE:-false}'
+      REFRESH_TOKEN_COOKIE_SECURE: '${DIRECTUS_REFRESH_TOKEN_COOKIE_SECURE:-true}'
       REFRESH_TOKEN_COOKIE_SAME_SITE: '${DIRECTUS_REFRESH_TOKEN_COOKIE_SAME_SITE:-lax}'
-      REFRESH_TOKEN_COOKIE_DOMAIN: '${DIRECTUS_REFRESH_TOKEN_COOKIE_DOMAIN:-localhost}'
-      SESSION_COOKIE_SECURE: '${DIRECTUS_SESSION_COOKIE_SECURE:-false}'
+      REFRESH_TOKEN_COOKIE_DOMAIN: '${DIRECTUS_REFRESH_TOKEN_COOKIE_DOMAIN:-.localhost}'
+      SESSION_COOKIE_SECURE: '${DIRECTUS_SESSION_COOKIE_SECURE:-true}'
       SESSION_COOKIE_SAME_SITE: '${DIRECTUS_SESSION_COOKIE_SAME_SITE:-lax}'
-      SESSION_COOKIE_DOMAIN: '${DIRECTUS_SESSION_COOKIE_DOMAIN:-localhost}'
+      SESSION_COOKIE_DOMAIN: '${DIRECTUS_SESSION_COOKIE_DOMAIN:-.localhost}'
       
       # Extensions
       EXTENSIONS_PATH: '${DIRECTUS_EXTENSIONS_PATH:-./extensions}'
       EXTENSIONS_AUTO_RELOAD: '${DIRECTUS_EXTENSIONS_AUTO_RELOAD:-true}'
       
       # Content Security Policy
-      CONTENT_SECURITY_POLICY_DIRECTIVES__FRAME_SRC: '${DIRECTUS_CSP_FRAME_SRC:-http://localhost:3000,http://localhost:3001}'
+      CONTENT_SECURITY_POLICY_DIRECTIVES__FRAME_SRC: '${DIRECTUS_CSP_FRAME_SRC:-https://app.localhost,https://api.localhost}'
       
       # Logging
       LOG_LEVEL: '${DIRECTUS_LOG_LEVEL:-info}'
@@ -146,6 +165,8 @@ volumes:
   redis_data:
   directus_uploads:
   directus_extensions:
+  caddy_data:
+  caddy_config:
 
 networks:
   eppur-network:
