@@ -12,7 +12,6 @@ dist/
 build/
 
 # Model files
-models/*.joblib
 models/*.pkl
 
 # Environment variables
