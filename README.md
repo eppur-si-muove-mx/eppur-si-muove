@@ -45,9 +45,11 @@ eppur-si-muove/
 
 ## 📋 Prerequisites
 
-- **Docker** & **Docker Compose** (recommended)
+- **Docker** & **Docker Compose** v2+ (recommended)
 - **Node.js** 20+ (for local web development)
 - **Python** 3.11+ (for local API development)
+
+> **Note:** Este proyecto tiene dos configuraciones de Docker Compose. Ver [DOCKER_STRATEGY.md](DOCKER_STRATEGY.md) para detalles sobre cuál usar.
 
 ## 🎯 Quick Start
 
@@ -60,13 +62,19 @@ eppur-si-muove/
 
 2. **Configure environment variables**:
    ```bash
-   cp env.example .env
-   # Edit .env with your configuration
+   make setup
+   # Edit .env with your configuration if needed
    ```
 
-3. **Start all services**:
+3. **Start all services** (single command):
    ```bash
-   docker-compose up -d
+   make test-all
+   ```
+   
+   Or manually:
+   ```bash
+   docker compose build
+   docker compose up -d
    ```
 
 4. **Access the services**:
@@ -76,12 +84,12 @@ eppur-si-muove/
 
 5. **View logs**:
    ```bash
-   docker-compose logs -f
+   make logs
    ```
 
 6. **Stop all services**:
    ```bash
-   docker-compose down
+   make test-stop
    ```
 
 ### Option 2: Individual Services
@@ -108,16 +116,18 @@ uvicorn app.main:app --reload
 
 Access API docs at http://localhost:8000/api/docs
 
-#### Directus CMS
+#### Directus CMS (Standalone)
 
 ```bash
 cd infra/directus
 cp env.example .env
 # Edit .env and configure
-docker-compose up -d
+docker compose up -d
 ```
 
 Access at http://localhost:8055
+
+> **Note:** Ver [DOCKER_STRATEGY.md](DOCKER_STRATEGY.md) para entender la diferencia entre el stack completo y Directus standalone.
 
 ## 🧪 Machine Learning Model
 
@@ -204,29 +214,86 @@ To add a new service to the monorepo:
 6. ✅ Use environment-specific `.env` files
 7. ✅ Never commit `.env` files to version control
 
+## 📦 Seed Directus Data
+
+You can now seed the Directus CMS in two ways:
+
+### Option A: Using the Directus Tool (no external scripts)
+- Start the stack (Directus/API): `make up` (or `make test-all`)
+- Open Directus: http://localhost:8055
+- Use the Directus tool to insert sample data (as done in this session). See the guide:
+  - docs/SEEDING_WITH_DIRECTUS_TOOL.md
+- This keeps all data creation inside Directus (planets, discoveries, training_datasets, training_runs, predictions). For planet_flags, use the small manual Flow recipe provided in the doc to set the `user` as the current user.
+
+### Option B: Python Seeder (legacy/alternative)
+Once the stack is running (make up or make test-all), you can populate Directus with sample data using the local CSV and API predictions.
+
+Steps:
+
+1. Ensure services are running:
+   - Directus at http://localhost:8055
+   - API at http://localhost:8000
+2. Run the seeding script:
+
+```bash
+make seed-directus
+```
+
+What it does:
+- Creates ~50 planets from data/data_set_final.csv (maps English disposition → Spanish)
+- Creates sample discoveries and per-user planet flags (for the admin user)
+- Registers a training dataset entry and a sample training run
+- Calls the API /api/v1/predict/batch with apps/api/test_payloads/batch_mixed_all_classes.json and stores results in predictions
+
+Directus URLs:
+- Planets: http://localhost:8055/admin/content/planets
+- Discoveries: http://localhost:8055/admin/content/discoveries
+- Planet Flags: http://localhost:8055/admin/content/planet_flags
+- Training Datasets: http://localhost:8055/admin/content/training_datasets
+- Training Runs: http://localhost:8055/admin/content/training_runs
+- Predictions: http://localhost:8055/admin/content/predictions
+
+Notes:
+- Default Directus admin credentials (override via env): admin@example.com / d1r3ctu5
+- The seeder uses only Python stdlib (no extra deps).
+
 ## 🧰 Useful Commands
 
 ```bash
 # Build all services
-docker-compose build
+make build
+
+# Start all services
+make up
 
 # Start specific service
-docker-compose up web
-docker-compose up api
-docker-compose up directus
+docker compose up -d web
+docker compose up -d api
+docker compose up -d directus
 
-# View logs for specific service
-docker-compose logs -f web
-docker-compose logs -f api
+# View logs
+make logs              # All services
+make logs-web         # Web only
+make logs-api         # API only
+make logs-directus    # Directus only
+
+# Check status
+make status
 
 # Restart a service
-docker-compose restart api
+make restart-api
+make restart-web
 
 # Remove all data (DANGEROUS!)
-docker-compose down -v
+make clean
 
 # Execute command in running container
-docker-compose exec api python -c "print('Hello')"
+docker compose exec api python -c "print('Hello')"
+
+# Open shell in container
+make shell-api
+make shell-web
+make shell-directus
 ```
 
 ## 📝 License
