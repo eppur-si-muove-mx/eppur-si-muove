@@ -1,0 +1,12 @@
+# Environment variables
+.env
+
+# Directus uploads and extensions
+uploads/*
+!uploads/.gitkeep
+extensions/*
+!extensions/.gitkeep
+
+# Database backups
+*.sql
+*.dump

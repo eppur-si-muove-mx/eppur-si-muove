@@ -1,0 +1,53 @@
+{
+  "description": "Payload con 3 ejemplos de exoplanetas CANDIDATE",
+  "samples": [
+    {
+      "id": "1001.01",
+      "expected_disposition": "CANDIDATE",
+      "features": {
+        "pl_rade": 11.2154,
+        "pl_eqt": 4045,
+        "pl_orbper": 1.9316462,
+        "st_teff": 7070,
+        "st_rad": 2.01,
+        "st_logg": 4.03,
+        "st_tmag": 9.42344,
+        "ra": 122.580465,
+        "dec": -5.513852,
+        "st_dist": 295.862
+      }
+    },
+    {
+      "id": "1007.01",
+      "expected_disposition": "CANDIDATE",
+      "features": {
+        "pl_rade": 14.7752,
+        "pl_eqt": 1282,
+        "pl_orbper": 6.9989206,
+        "st_teff": 6596,
+        "st_rad": 2.7,
+        "st_logg": 3.71,
+        "st_tmag": 8.87759,
+        "ra": 112.752393,
+        "dec": -4.463359,
+        "st_dist": 283.291
+      }
+    },
+    {
+      "id": "1011.01",
+      "expected_disposition": "CANDIDATE",
+      "features": {
+        "pl_rade": 1.44656,
+        "pl_eqt": 1364,
+        "pl_orbper": 2.4704981,
+        "st_teff": 5413.7,
+        "st_rad": 0.94,
+        "st_logg": 4.46,
+        "st_tmag": 8.2388,
+        "ra": 113.984761,
+        "dec": -32.841999,
+        "st_dist": 52.62
+      }
+    }
+  ]
+}

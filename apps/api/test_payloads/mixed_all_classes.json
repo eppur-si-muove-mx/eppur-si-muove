@@ -1,0 +1,69 @@
+{
+  "description": "Payload con 1 ejemplo de cada disposición para probar todas las clases",
+  "samples": [
+    {
+      "id": "101.01",
+      "expected_disposition": "CONFIRMED",
+      "features": {
+        "pl_rade": 13.1874503,
+        "pl_eqt": 1525.904809,
+        "pl_orbper": 1.4303699,
+        "st_teff": 5600,
+        "st_rad": 0.890774,
+        "st_logg": 4.48851,
+        "st_tmag": 12.4069,
+        "ra": 318.737012,
+        "dec": -55.871863,
+        "st_dist": 375.31
+      }
+    },
+    {
+      "id": "1001.01",
+      "expected_disposition": "CANDIDATE",
+      "features": {
+        "pl_rade": 11.2154,
+        "pl_eqt": 4045,
+        "pl_orbper": 1.9316462,
+        "st_teff": 7070,
+        "st_rad": 2.01,
+        "st_logg": 4.03,
+        "st_tmag": 9.42344,
+        "ra": 122.580465,
+        "dec": -5.513852,
+        "st_dist": 295.862
+      }
+    },
+    {
+      "id": "1000.01",
+      "expected_disposition": "FALSE POSITIVE",
+      "features": {
+        "pl_rade": 5.8181633,
+        "pl_eqt": 3127.204052,
+        "pl_orbper": 2.1713484,
+        "st_teff": 10249,
+        "st_rad": 2.16986,
+        "st_logg": 4.19,
+        "st_tmag": 9.604,
+        "ra": 112.357708,
+        "dec": -12.69596,
+        "st_dist": 485.735
+      }
+    },
+    {
+      "id": "1022.01",
+      "expected_disposition": "REFUTED",
+      "features": {
+        "pl_rade": 3.4262,
+        "pl_eqt": 3230,
+        "pl_orbper": 3.09574,
+        "st_teff": 6084,
+        "st_rad": 1.41,
+        "st_logg": 4.13,
+        "st_tmag": 8.72924,
+        "ra": 162.96491,
+        "dec": -5.788708,
+        "st_dist": 120.666
+      }
+    }
+  ]
+}
